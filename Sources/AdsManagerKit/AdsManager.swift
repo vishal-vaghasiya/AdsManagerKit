@@ -226,4 +226,47 @@ public final class AdsManager: NSObject {
         NativeAdManager.shared.getAd(in: containerView, adType: adType, completion: completion ?? { _ in })
     }
     
+    /// Binds a NativeAd model to a NativeAdView (fills views, hides empty assets, sets nativeAd property).
+    public func bindNativeAd(_ nativeAd: NativeAd, to nativeAdView: NativeAdView) {
+        // headline & media
+        (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
+        nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
+        
+        // body
+        (nativeAdView.bodyView as? UILabel)?.text = nativeAd.body
+        nativeAdView.bodyView?.isHidden = (nativeAd.body == nil)
+        
+        // call to action
+        (nativeAdView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
+        nativeAdView.callToActionView?.isHidden = (nativeAd.callToAction == nil)
+        
+        // icon
+        (nativeAdView.iconView as? UIImageView)?.image = nativeAd.icon?.image
+        nativeAdView.iconView?.isHidden = (nativeAd.icon == nil)
+        
+        // star rating
+        if let starRating = nativeAd.starRating {
+            (nativeAdView.starRatingView as? UIImageView)?.image = getStarRatingImage(for: starRating)
+            nativeAdView.starRatingView?.isHidden = false
+        } else {
+            nativeAdView.starRatingView?.isHidden = true
+        }
+        
+        // store / price / advertiser
+        (nativeAdView.storeView as? UILabel)?.text = nativeAd.store
+        nativeAdView.storeView?.isHidden = (nativeAd.store == nil)
+        
+        (nativeAdView.priceView as? UILabel)?.text = nativeAd.price
+        nativeAdView.priceView?.isHidden = (nativeAd.price == nil)
+        
+        (nativeAdView.advertiserView as? UILabel)?.text = nativeAd.advertiser
+        nativeAdView.advertiserView?.isHidden = (nativeAd.advertiser == nil)
+        
+        // Ensure CTA doesn't accept user interaction so SDK handles clicks
+        nativeAdView.callToActionView?.isUserInteractionEnabled = false
+        
+        // Associate the view with the ad object (after populating other views)
+        nativeAdView.nativeAd = nativeAd
+    }
+    
 }
