@@ -219,14 +219,14 @@ func combineStarImages(_ images: [UIImage]) -> UIImage? {
 
 // MARK: - GADNativeAdLoaderDelegate
 extension NativeAdManager: NativeAdLoaderDelegate {
-    nonisolated func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
+    nonisolated public func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         let loaderID = ObjectIdentifier(adLoader)
         Task { @MainActor in
             self.handleAdLoaded(loaderID: loaderID, nativeAd: nativeAd)
         }
     }
 
-    nonisolated func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
+    nonisolated public func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
         let loaderID = ObjectIdentifier(adLoader)
         Task { @MainActor in
             self.handleAdFailed(loaderID: loaderID, error: error)

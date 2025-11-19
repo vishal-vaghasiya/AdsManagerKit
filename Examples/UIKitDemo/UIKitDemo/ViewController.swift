@@ -5,8 +5,9 @@
 
 import UIKit
 import AdsManager
+import GoogleMobileAds
 class ViewController: UIViewController {
-    
+    var loadedAds: [NativeAd] = []
     override func viewDidLoad() {
         super.viewDidLoad()
         AdsManager.configureAds(isProduction: false,
@@ -23,6 +24,11 @@ class ViewController: UIViewController {
                                 nativeAdErrorCount: 7)
         
         AdsManager.shared.loadOpenAd()
+        
+        NativeAdLoader.shared.loadNativeAds(count: 2) { ads in
+            self.loadedAds = ads
+            print("Native Ad Loaded:: \(ads.count)")
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
