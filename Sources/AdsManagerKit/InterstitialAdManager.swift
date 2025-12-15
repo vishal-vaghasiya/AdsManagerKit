@@ -11,6 +11,7 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     private var interstitialAd: InterstitialAd?
     private var completionHandler: (() -> Void)?
     var displayCounter: Int = 0
+    var displayCounterOnBack: Int = 0
     var displayLimitCounter: Int = 0
     
     private func createAdRequest() -> Request {
@@ -126,7 +127,7 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     }
     
     /// Show the ad if available, then run completion
-    func showAd(from viewController: UIViewController? = nil, completion: @escaping () -> Void) {
+    func showAd(from viewController: UIViewController? = nil, onBack: Bool = false, completion: @escaping () -> Void) {
         if !AdsConfig.interstitialAdEnabled {
             completion()
             return
@@ -148,19 +149,36 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
             return
         }
         
-        if displayLimitCounter < AdsConfig.maxInterstitialAdsPerSession {
-            if displayCounter >= AdsConfig.interstitialAdShowCount {
-                displayCounter = 1
-                displayLimitCounter += 1
-                resetErrorCounter()
-                completionHandler = completion
-                ad.present(from: presentingVC)
+        if onBack {
+            if displayLimitCounter < AdsConfig.maxInterstitialAdsPerSession {
+                if displayCounterOnBack >= AdsConfig.interstitialAdShowCountOnBack {
+                    displayCounterOnBack = 1
+                    displayLimitCounter += 1
+                    resetErrorCounter()
+                    completionHandler = completion
+                    ad.present(from: presentingVC)
+                } else {
+                    displayCounterOnBack += 1
+                    completion()
+                }
             } else {
-                displayCounter += 1
                 completion()
             }
         } else {
-            completion()
+            if displayLimitCounter < AdsConfig.maxInterstitialAdsPerSession {
+                if displayCounter >= AdsConfig.interstitialAdShowCount {
+                    displayCounter = 1
+                    displayLimitCounter += 1
+                    resetErrorCounter()
+                    completionHandler = completion
+                    ad.present(from: presentingVC)
+                } else {
+                    displayCounter += 1
+                    completion()
+                }
+            } else {
+                completion()
+            }
         }
     }
     

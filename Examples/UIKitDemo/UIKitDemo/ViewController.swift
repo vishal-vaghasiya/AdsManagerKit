@@ -18,6 +18,7 @@ class ViewController: UIViewController {
                                 nativeAdEnabled: true,
                                 nativeAdPreloadEnabled: true,
                                 interstitialAdShowCount: 1,
+                                interstitialAdShowCountOnBack: 1,
                                 maxInterstitialAdsPerSession: 50,
                                 bannerAdErrorCount: 7,
                                 interstitialAdErrorCount: 7,
@@ -49,7 +50,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func interstitialAdButtonClick(_ sender: UIButton) {
-        AdsManager.shared.showInterstitial(from: self) {
+        AdsManager.shared.showInterstitial(from: self, onBack: true) {
             
         }
     }
