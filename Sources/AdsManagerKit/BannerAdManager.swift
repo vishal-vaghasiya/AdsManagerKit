@@ -118,7 +118,7 @@ extension BannerAdManager: BannerViewDelegate {
         print("[BannerAd] Failed to load: \(error.localizedDescription)")
         #endif
         self.incrementErrorCounter()
-        completionHandler?(false, bannerHeight)
+        completionHandler?(false, 0)
     }
 }
 

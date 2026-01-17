@@ -1,9 +1,9 @@
 import GoogleMobileAds
 import UIKit
 public enum AdType: String {
-    case SMALL = "NativeAdView_Small"   //120
+    case SMALL = "NativeAdView_Small"   //108
     case MEDIUM = "NativeAdView_Medium" //170
-    case LARGE = "NativeAdView"         //250
+    case LARGE = "NativeAdView"         //280
 }
 @MainActor
 final class NativeAdManager: NSObject {
@@ -317,9 +317,9 @@ public struct NativeAdContainerView: UIViewRepresentable {
                 // Set height according to adType
                 let height: CGFloat
                 switch adType {
-                case .SMALL: height = 120
-                case .MEDIUM: height = 300
-                case .LARGE: height = 400
+                case .SMALL: height = 108
+                case .MEDIUM: height = 170
+                case .LARGE: height = 280
                 }
                 self.onAdLoaded?(height)
             } else {
