@@ -12,11 +12,13 @@ class NativeAdVC: UIViewController {
     
     @IBOutlet weak var smallNativeAdView: UIView!
     @IBOutlet weak var mediumNativeAdView: UIView!
+    @IBOutlet weak var largeNativeAdView: UIView!
     override func viewDidLoad() {
         super.viewDidLoad()
         
         AdsManager.shared.loadNative(in: smallNativeAdView, adType: .SMALL)
         AdsManager.shared.loadNative(in: mediumNativeAdView, adType: .MEDIUM)
+        AdsManager.shared.loadNative(in: largeNativeAdView, adType: .LARGE)
     }
     
     

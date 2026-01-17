@@ -1,9 +1,9 @@
 import GoogleMobileAds
 import UIKit
 public enum AdType: String {
-    case SMALL = "NativeAdView_Small"//120
-    case MEDIUM = "NativeAdView_Medium"
-    case LARGE = "NativeAdView"
+    case SMALL = "NativeAdView_Small"   //120
+    case MEDIUM = "NativeAdView_Medium" //170
+    case LARGE = "NativeAdView"         //250
 }
 @MainActor
 final class NativeAdManager: NSObject {
@@ -176,25 +176,41 @@ final class NativeAdManager: NSObject {
 func getStarRatingImage(for rating: NSDecimalNumber) -> UIImage? {
     let ratingValue = rating.floatValue
     let fullStars = Int(ratingValue)
-    let halfStar = ratingValue - Float(fullStars) >= 0.5 ? 1 : 0
-    
+    let hasHalfStar = ratingValue - Float(fullStars) >= 0.5
+
     var starImages: [UIImage] = []
-    
-    // Add full stars
+
+    let filledColor = UIColor.systemYellow
+    let emptyColor = UIColor.systemGray3
+    let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .regular)
+
+    func star(_ name: String, color: UIColor) -> UIImage? {
+        UIImage(systemName: name, withConfiguration: config)?
+            .withTintColor(color, renderingMode: .alwaysOriginal)
+    }
+
+    // Full stars
     for _ in 0..<fullStars {
-        starImages.append(UIImage(systemName: "star.fill")!) // Replace with your full star image
+        if let img = star("star.fill", color: filledColor) {
+            starImages.append(img)
+        }
     }
-    // Add half star if applicable
-    if halfStar > 0 {
-        starImages.append(UIImage(systemName: "star.lefthalf.fill")!) // Replace with your half star image
+
+    // Half star
+    if hasHalfStar {
+        if let img = star("star.leadinghalf.filled", color: filledColor) {
+            starImages.append(img)
+        }
     }
-    // Add empty stars to fill to 5
-    let emptyStars = 5 - fullStars - halfStar
-    for _ in 0..<emptyStars {
-        starImages.append(UIImage(systemName: "star")!) // Replace with your empty star image
+
+    // Empty stars
+    let emptyCount = 5 - fullStars - (hasHalfStar ? 1 : 0)
+    for _ in 0..<emptyCount {
+        if let img = star("star", color: emptyColor) {
+            starImages.append(img)
+        }
     }
-    
-    // Combine star images into a single image view
+
     return combineStarImages(starImages)
 }
 
