@@ -99,11 +99,6 @@ public struct AdsConfig {
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
     
-    static var interstitialAdShowCountOnBack: Int {
-        get { UserDefaults.standard.integer(forKey: #function) }
-        set { UserDefaults.standard.set(newValue, forKey: #function) }
-    }
-    
     static var maxInterstitialAdsPerSession: Int {
         get { UserDefaults.standard.integer(forKey: #function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }

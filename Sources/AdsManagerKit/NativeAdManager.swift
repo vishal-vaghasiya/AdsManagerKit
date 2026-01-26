@@ -13,7 +13,7 @@ final class NativeAdManager: NSObject {
     // For handling individual ad requests
     private var completionHandlers: [AdLoader: (NativeAd?) -> Void] = [:]
     private var adCache: [NativeAd] = []
-    private let maxCacheCapacity = 3
+    private let maxCacheCapacity = 1
     private var activeAdLoaders: [AdLoader] = []
     private var completionHandler: ((Bool) -> Void)?
     
@@ -38,13 +38,9 @@ final class NativeAdManager: NSObject {
     }
     
     // MARK: - Preload Native Ads
-    func preloadNativeAds(count: Int = 1) {
+    func preloadNativeAds() {
         if AdsConfig.nativeAdPreloadEnabled {
-            for i in 0..<count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.5) {
-                    self.loadAd()
-                }
-            }
+            self.loadAd()
         }
     }
     
@@ -147,10 +143,11 @@ final class NativeAdManager: NSObject {
     
     // MARK: - Internal Ad Loader
     private func loadAd(completion: ((NativeAd?) -> Void)? = nil) {
-        if !AdsConfig.nativeAdEnabled {
+        guard AdsConfig.nativeAdEnabled else {
             self.completionHandler?(false)
             return
         }
+
         guard !hasExceededErrorLimit() else {
             #if DEBUG
             print("[NativeAd] ⚠️ Max error attempts reached — not loading.")

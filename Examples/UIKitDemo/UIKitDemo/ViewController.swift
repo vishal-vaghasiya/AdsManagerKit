@@ -17,18 +17,20 @@ class ViewController: UIViewController {
                                 interstitialAdEnabled: true,
                                 nativeAdEnabled: true,
                                 nativeAdPreloadEnabled: true,
-                                interstitialAdShowCount: 1,
-                                interstitialAdShowCountOnBack: 1,
-                                maxInterstitialAdsPerSession: 50,
+                                interstitialAdShowCount: 4,
+                                maxInterstitialAdsPerSession: 5,
                                 bannerAdErrorCount: 7,
                                 interstitialAdErrorCount: 7,
                                 nativeAdErrorCount: 7)
-        
-        AdsManager.shared.loadOpenAd()
-        
-        NativeAdLoader.shared.loadNativeAds(count: 2) { ads in
-            self.loadedAds = ads
-            print("Native Ad Loaded:: \(ads.count)")
+        DispatchQueue.main.async {
+            AdsManager.configure {
+                DispatchQueue.main.async {
+                    NativeAdLoader.shared.loadNativeAds(count: 2) { ads in
+                        self.loadedAds = ads
+                        print("Native Ad Loaded:: \(ads.count)")
+                    }
+                }
+            }
         }
     }
     
@@ -50,7 +52,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func interstitialAdButtonClick(_ sender: UIButton) {
-        AdsManager.shared.showInterstitial(from: self, onBack: true) {
+        AdsManager.shared.showInterstitial(from: self) {
             
         }
     }

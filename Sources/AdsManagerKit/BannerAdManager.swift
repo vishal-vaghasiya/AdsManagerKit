@@ -31,10 +31,7 @@ final class BannerAdManager: NSObject {
                       vc: UIViewController,
                       type: BannerAdType,
                       completion: @escaping (Bool, CGFloat) -> Void) {
-        if !AdsConfig.bannerAdEnabled {
-            #if DEBUG
-            print("[BannerAd] ⚠️ Banner ads are disabled or screen changed — skipping load.")
-            #endif
+        guard AdsConfig.bannerAdEnabled else {
             completion(false, 0)
             return
         }

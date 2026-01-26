@@ -37,7 +37,6 @@ public final class AdsManager: NSObject {
         interstitialAdUnitId: String? = nil,
         nativeAdUnitId: String? = nil,
         interstitialAdShowCount: Int = 4,
-        interstitialAdShowCountOnBack: Int = 5,
         maxInterstitialAdsPerSession: Int = 50,
         bannerAdErrorCount: Int = 7,
         interstitialAdErrorCount: Int = 7,
@@ -58,7 +57,6 @@ public final class AdsManager: NSObject {
         AdsConfig.nativeAdUnitId = nativeAdUnitId ?? "ca-app-pub-3940256099942544/3986624511"
         
         AdsConfig.interstitialAdShowCount = interstitialAdShowCount
-        AdsConfig.interstitialAdShowCountOnBack = interstitialAdShowCountOnBack
         AdsConfig.maxInterstitialAdsPerSession = maxInterstitialAdsPerSession
         
         AdsConfig.bannerAdErrorCount = bannerAdErrorCount
@@ -205,9 +203,8 @@ public final class AdsManager: NSObject {
     }
     
     public func showInterstitial(from viewController: UIViewController? = nil,
-                                 onBack: Bool = false,
                                  completion: @escaping () -> Void) {
-        InterstitialAdManager.shared.showAd(from: viewController, onBack: onBack, completion: completion)
+        InterstitialAdManager.shared.showAd(from: viewController, completion: completion)
     }
     
     // MARK: - Banner Ad

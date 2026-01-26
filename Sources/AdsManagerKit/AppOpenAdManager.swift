@@ -47,7 +47,7 @@ public final class AppOpenAdManager: NSObject {
             return
         }
         
-        if !AdsConfig.openAdOnLaunchEnabled {
+        guard AdsConfig.openAdOnLaunchEnabled else {
             completion()
             return
         }
