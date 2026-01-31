@@ -1,6 +1,15 @@
 {
-  "originHash" : "f5c1a9e1f78e04a15cd8caf9ea0fa609d2f472fd39ae5a48726c085b325ae44d",
+  "originHash" : "63177b5a36baac7e60cf9a6f5d38b4588e956a9a7fb99538cb3f37242b63e491",
   "pins" : [
+    {
+      "identity" : "jgprogresshud",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/JonasGessner/JGProgressHUD.git",
+      "state" : {
+        "revision" : "78d7cd35f1d90ff74fd82e486f2cbe4b24be8cf9",
+        "version" : "2.2.0"
+      }
+    },
     {
       "identity" : "swift-package-manager-google-mobile-ads",
       "kind" : "remoteSourceControl",

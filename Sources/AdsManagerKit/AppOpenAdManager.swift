@@ -1,4 +1,5 @@
 @preconcurrency import GoogleMobileAds
+import UserMessagingPlatform
 import UIKit
 
 // MARK: - AppOpenAdManager
@@ -17,7 +18,7 @@ public final class AppOpenAdManager: NSObject {
     private var isShowingAd = false
     /// Keeps track of the time when an app open ad was loaded to discard expired ad.
     private var adLoadTime: Date?
-    private let adValidityDuration: TimeInterval = 4 * 3_600
+    private let adValidityDuration: TimeInterval = 4 * 3_600 / 3
     
     public static let shared = AppOpenAdManager()
     // MARK: - Private Methods
@@ -41,6 +42,17 @@ public final class AppOpenAdManager: NSObject {
     // MARK: - Public Methods
     
     public func loadAndShow(completion: @escaping @Sendable () -> Void) {
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping load.")
+            #endif
+            completion()
+            return
+        }
+        guard !isShowingAd else {
+            completion()
+            return
+        }
         self.appOpenAdManagerAdDidComplete = completion
         if isLoadingAd || isAdAvailable() {
             completion()
@@ -52,53 +64,46 @@ public final class AppOpenAdManager: NSObject {
             return
         }
         
-        if let ad = appOpenAd {
-            #if DEBUG
-            print("[AppOpenAd] will be displayed.")
-            #endif
-            isShowingAd = true
-            ad.present(from: nil)
-        } else {
-            isLoadingAd = true
-            let request = createAdRequest()
-            AppOpenAd.load(
-                with: AdsConfig.openAdUnitId,
-                request: request
-            ) { [weak self] ad, error in
-                Task { @MainActor in
-                    guard let self else {
-                        completion()
-                        return
-                    }
-                    if let error = error {
-                        self.isLoadingAd = false
-                        self.appOpenAd = nil
-                        self.adLoadTime = nil
-                        if !self.didFirstLoadFail {
-                            self.didFirstLoadFail = true
-                            self.loadAndShow(completion: completion)
-                        } else {
-                            completion()
-                        }
-                        #if DEBUG
-                        print("[AppOpenAd] Failed to load: \(error)")
-                        #endif
-                        return
-                    }
-                    self.appOpenAd = ad
-                    self.appOpenAd?.fullScreenContentDelegate = self
-                    self.adLoadTime = Date()
-                    self.isLoadingAd = false
-                    #if DEBUG
-                    print("[AppOpenAd] loaded.")
-                    #endif
-                    self.appOpenAd?.present(from: nil)
+        isLoadingAd = true
+        let request = createAdRequest()
+        AppOpenAd.load(
+            with: AdsConfig.openAdUnitId,
+            request: request
+        ) { [weak self] ad, error in
+            Task { @MainActor in
+                guard let self else {
+                    completion()
+                    return
                 }
+                if let error = error {
+                    self.isLoadingAd = false
+                    self.appOpenAd = nil
+                    self.adLoadTime = nil
+                    self.didFirstLoadFail = true
+                    #if DEBUG
+                    print("[AppOpenAd] Failed to load: \(error)")
+                    #endif
+                    completion()
+                    return
+                }
+                self.appOpenAd = ad
+                self.appOpenAd?.fullScreenContentDelegate = self
+                self.adLoadTime = Date()
+                self.isLoadingAd = false
+                #if DEBUG
+                print("[AppOpenAd] loaded.")
+                #endif
             }
         }
     }
     
     func loadOpenAd() {
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping preload.")
+            #endif
+            return
+        }
         if isLoadingAd || isAdAvailable() {
             return
         }
@@ -129,6 +134,12 @@ public final class AppOpenAdManager: NSObject {
     }
     
     func tryToPresentAd() {
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping show.")
+            #endif
+            return
+        }
         // If the app open ad is already showing, do not show the ad again.
         if isShowingAd {
             #if DEBUG

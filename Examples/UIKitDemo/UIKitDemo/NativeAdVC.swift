@@ -16,9 +16,9 @@ class NativeAdVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        AdsManager.shared.loadNative(in: smallNativeAdView, adType: .SMALL)
-        AdsManager.shared.loadNative(in: mediumNativeAdView, adType: .MEDIUM)
-        AdsManager.shared.loadNative(in: largeNativeAdView, adType: .LARGE)
+        AdsManager.shared.loadNative(in: smallNativeAdView, rootViewController: self, adType: .SMALL)
+        AdsManager.shared.loadNative(in: mediumNativeAdView, rootViewController: self, adType: .MEDIUM)
+        AdsManager.shared.loadNative(in: largeNativeAdView, rootViewController: self, adType: .LARGE)
     }
     
     

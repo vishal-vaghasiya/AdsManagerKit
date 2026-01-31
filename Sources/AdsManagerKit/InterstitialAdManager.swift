@@ -9,7 +9,6 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     public static let shared = InterstitialAdManager()
     
     private var interstitialAd: InterstitialAd?
-    private var completionHandler: (() -> Void)?
     private var displayCounter: Int = 0
     private var sessionLimitCounter: Int = 0
     private var isLoadingAd = false
@@ -34,6 +33,13 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     
     /// Load the interstitial ad
     func loadAd() {
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[InterstitialAd] ⛔️ Consent not granted (canRequestAds = false). Skipping load.")
+            #endif
+            return
+        }
+        
         guard AdsConfig.interstitialAdEnabled,
               sessionLimitCounter < AdsConfig.maxInterstitialAdsPerSession else {
             return
@@ -75,29 +81,23 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     }
     
     /// Show the ad if available, then run completion
-    func showAd(from viewController: UIViewController? = nil, completion: @escaping () -> Void) {
-        guard AdsConfig.interstitialAdEnabled else {
-            completion()
+    func showAd() {
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[InterstitialAd] ⛔️ Consent not granted (canRequestAds = false). Skipping show.")
+            #endif
             return
         }
         
-        var presentingVC = viewController
-        
-        if presentingVC == nil {
-            #if DEBUG
-            print("[InterstitialAd] ⚠️ Warning: Passing nil viewController in UIKit context may not be safe.")
-            #endif
-            // Fallback to topMostViewController for SwiftUI usage
-            presentingVC = UIApplication.shared.topMostViewController()
+        guard AdsConfig.interstitialAdEnabled else {
+            return
         }
         
         guard sessionLimitCounter < AdsConfig.maxInterstitialAdsPerSession else {
-            completion()
             return
         }
         
         guard let ad = interstitialAd else {
-            completion()
             DispatchQueue.main.async {
                 self.loadAd()
             }
@@ -115,12 +115,14 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
             sessionLimitCounter += 1
             resetErrorCounter()
             
-            lastInterstitialShownAt = Date()
-            completionHandler = completion
-            ad.present(from: presentingVC)
+            KVNProgress.show(status: "Showing Ad")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                KVNProgress.dismiss()
+                self.lastInterstitialShownAt = Date()
+                ad.present(from: UIApplication.shared.windows.first!.rootViewController)
+            }
         } else {
             displayCounter += 1
-            completion()
         }
     }
     
@@ -132,8 +134,6 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         #endif
         interstitialAd = nil
         loadAd()
-        completionHandler?()
-        completionHandler = nil
     }
     
     public func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
@@ -142,8 +142,6 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         #endif
         interstitialAd = nil
         loadAd()
-        completionHandler?()
-        completionHandler = nil
     }
     
     public func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {

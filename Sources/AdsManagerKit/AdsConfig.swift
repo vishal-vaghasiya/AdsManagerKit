@@ -43,11 +43,6 @@ public struct AdsConfig {
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var nativeAdPreloadEnabled: Bool {
-        get { adEnabled(#function) }
-        set { UserDefaults.standard.set(newValue, forKey: #function) }
-    }
-
     static var openAdOnLaunchEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }

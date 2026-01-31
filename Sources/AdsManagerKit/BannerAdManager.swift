@@ -15,16 +15,106 @@ final class BannerAdManager: NSObject {
     private var completionHandler: ((Bool, CGFloat) -> Void)?
     private var bannerHeight = CGFloat(0)
     
+    private var lastBannerAdErrorTime: Date?
+    private let bannerAdRetryCooldown: TimeInterval = 60
+    
+    private var refreshTimer: Timer?
+    private let bannerRefreshInterval: TimeInterval = 60 // seconds
+
+    private var isRefreshPausedByBackground: Bool = false
+
+    private var lastBannerType: BannerAdType = .ADAPTIVE
+
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        stopBannerRefresh()
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func appDidEnterBackground() {
+        if refreshTimer != nil {
+            isRefreshPausedByBackground = true
+            stopBannerRefresh()
+        }
+    }
+
+    @objc private func appWillEnterForeground() {
+        guard isRefreshPausedByBackground,
+              let bannerView = bannerView,
+              let container = bannerView.superview,
+              let vc = bannerView.rootViewController
+        else { return }
+
+        isRefreshPausedByBackground = false
+        startBannerRefresh(in: container, vc: vc, type: lastBannerType)
+    }
+
     public func resetErrorCounter() {
         AdsConfig.currentBannerAdErrorCount = 0
+        lastBannerAdErrorTime = nil
+        // keep refresh running on success
     }
     
     private func incrementErrorCounter() {
         AdsConfig.currentBannerAdErrorCount += 1
+        lastBannerAdErrorTime = Date()
     }
     
     private func hasExceededErrorLimit() -> Bool {
-        return AdsConfig.currentBannerAdErrorCount >= AdsConfig.bannerAdErrorCount
+        if AdsConfig.currentBannerAdErrorCount < AdsConfig.bannerAdErrorCount {
+            return false
+        }
+
+        guard let lastErrorTime = lastBannerAdErrorTime else {
+            return true
+        }
+
+        let canRetry = Date().timeIntervalSince(lastErrorTime) >= bannerAdRetryCooldown
+        if canRetry {
+            resetErrorCounter()
+            // retry allowed, refresh will resume on next load
+        }
+
+        return !canRetry
+    }
+    
+    private func startBannerRefresh(
+        in containerView: UIView,
+        vc: UIViewController,
+        type: BannerAdType
+    ) {
+        stopBannerRefresh()
+
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: bannerRefreshInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.loadBannerAd(
+                in: containerView,
+                vc: vc,
+                type: type
+            ) { _, _ in }
+        }
+    }
+
+    nonisolated private func stopBannerRefresh() {
+        Task { @MainActor in
+            self.refreshTimer?.invalidate()
+            self.refreshTimer = nil
+        }
     }
     
     func loadBannerAd(in containerView: UIView,
@@ -35,6 +125,12 @@ final class BannerAdManager: NSObject {
             completion(false, 0)
             return
         }
+        guard completionHandler == nil else {
+            #if DEBUG
+            print("[BannerAd] ⛔️ Banner load already in progress. Ignoring duplicate request.")
+            #endif
+            return
+        }
 
         guard !hasExceededErrorLimit() else {
             #if DEBUG
@@ -43,6 +139,14 @@ final class BannerAdManager: NSObject {
             completion(false, 0)
             return
         }
+
+        if let existingBanner = bannerView {
+            existingBanner.removeFromSuperview()
+            existingBanner.delegate = nil
+            bannerView = nil
+        }
+
+        self.lastBannerType = type
 
         let viewWidth = containerView.bounds.width > 0 ? containerView.bounds.width : UIScreen.main.bounds.width
         var adSize: AdSize
@@ -84,9 +188,14 @@ final class BannerAdManager: NSObject {
                                     onAdLoaded: ((CGFloat) -> Void)? = nil) -> UIView {
         let containerView = UIView()
         
-        guard let rootVC = UIApplication.shared.windows.first?.rootViewController else {
-            return containerView
-        }
+        guard let rootVC = UIApplication.shared
+            .connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else {
+                return containerView
+            }
         
         // Call existing loadBannerAd, but forward a SwiftUI callback separately
         loadBannerAd(in: containerView, vc: rootVC, type: adType) { success, height in
@@ -99,6 +208,15 @@ final class BannerAdManager: NSObject {
         return containerView
     }
     
+    public func stop() {
+        stopBannerRefresh()
+        if let banner = bannerView {
+            banner.removeFromSuperview()
+            banner.delegate = nil
+            bannerView = nil
+        }
+    }
+    
 }
 
 extension BannerAdManager: BannerViewDelegate {
@@ -107,7 +225,9 @@ extension BannerAdManager: BannerViewDelegate {
         print("[BannerAd] loaded.")
         #endif
         self.resetErrorCounter()
+        startBannerRefresh(in: bannerView.superview!, vc: bannerView.rootViewController!, type: lastBannerType)
         completionHandler?(true, bannerHeight)
+        completionHandler = nil
     }
     
     public func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
@@ -115,7 +235,9 @@ extension BannerAdManager: BannerViewDelegate {
         print("[BannerAd] Failed to load: \(error.localizedDescription)")
         #endif
         self.incrementErrorCounter()
+        stopBannerRefresh()
         completionHandler?(false, 0)
+        completionHandler = nil
     }
 }
 

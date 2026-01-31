@@ -15,7 +15,8 @@ let package = Package(
             targets: ["AdsManager"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads", from: "12.13.0")
+        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads", from: "12.13.0"),
+        .package(url: "https://github.com/JonasGessner/JGProgressHUD.git", from: "2.2.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -23,7 +24,8 @@ let package = Package(
         .target(
             name: "AdsManager",
             dependencies: [
-                .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads")
+                .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads"),
+                .product(name: "JGProgressHUD", package: "JGProgressHUD")
             ],
             resources: [
                 .process("Resources")

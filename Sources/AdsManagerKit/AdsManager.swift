@@ -31,7 +31,6 @@ public final class AdsManager: NSObject {
         bannerAdEnabled: Bool,
         interstitialAdEnabled: Bool,
         nativeAdEnabled: Bool,
-        nativeAdPreloadEnabled: Bool,
         openAdUnitId: String? = nil,
         bannerAdUnitId: String? = nil,
         interstitialAdUnitId: String? = nil,
@@ -49,7 +48,6 @@ public final class AdsManager: NSObject {
         AdsConfig.bannerAdEnabled = bannerAdEnabled
         AdsConfig.interstitialAdEnabled = interstitialAdEnabled
         AdsConfig.nativeAdEnabled = nativeAdEnabled
-        AdsConfig.nativeAdPreloadEnabled = nativeAdPreloadEnabled
         
         AdsConfig.openAdUnitId = openAdUnitId ?? "ca-app-pub-3940256099942544/5575463023"
         AdsConfig.bannerAdUnitId = bannerAdUnitId ?? "ca-app-pub-3940256099942544/2934735716"
@@ -65,16 +63,25 @@ public final class AdsManager: NSObject {
     }
     
     public static func configure(_ completion: @Sendable @escaping () -> Void) {
-        
+        #if DEBUG
+        ConsentInformation.shared.reset()
+        #endif
         // Request ATT first, then UMP consent
         AdsManager.shared.requestATTAuthorization { authorized in
             Task { @MainActor in
                 if authorized {
-                    AdsManager.shared.requestUMPConsent { _ in
+                    AdsManager.shared.requestUMPConsent { canRequestAds in
+                        if canRequestAds {
+                            AdsManager.shared.loadInterstitial()
+                        }
                         Self.startAdsFlow(completion: completion)
                     }
                 } else {
-                    ConsentInformation.shared.reset()
+                    // ATT denied — do NOT reset UMP consent automatically.
+                    // UMP will handle non‑personalized ads via canRequestAds.
+                    if ConsentInformation.shared.canRequestAds {
+                        AdsManager.shared.loadInterstitial()
+                    }
                     Self.startAdsFlow(completion: completion)
                 }
             }
@@ -83,8 +90,7 @@ public final class AdsManager: NSObject {
     
     private static func startAdsFlow(completion: @Sendable @escaping () -> Void) {
         MobileAds.shared.start()
-        AdsManager.shared.loadInterstitial()
-        AdsManager.shared.preloadNativeAds()
+        AdsManager.shared.loadOpenAd()
         completion()
     }
     
@@ -97,27 +103,19 @@ public final class AdsManager: NSObject {
     
     // Call this before setupAds
     public func requestATTAuthorization(completion: @Sendable @escaping (Bool) -> Void) {
-        if #available(iOS 14, *) {
-            ATTrackingManager.requestTrackingAuthorization { status in
-                DispatchQueue.main.async {
-                    switch status {
-                    case .authorized:
-                        print("ATT authorized ✅")
-                        completion(true)
-                    case .denied:
-                        print("ATT denied ❌")
-                        completion(false)
-                    case .restricted, .notDetermined:
-                        print("ATT not determined/restricted ⚠️")
-                        completion(false)
-                    @unknown default:
-                        completion(false)
-                    }
+        ATTrackingManager.requestTrackingAuthorization { status in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized:
+                    completion(true)
+                case .denied:
+                    completion(false)
+                case .restricted, .notDetermined:
+                    completion(false)
+                @unknown default:
+                    completion(false)
                 }
             }
-        } else {
-            // ATT not required below iOS 14
-            completion(true)
         }
     }
     
@@ -202,9 +200,8 @@ public final class AdsManager: NSObject {
         InterstitialAdManager.shared.loadAd()
     }
     
-    public func showInterstitial(from viewController: UIViewController? = nil,
-                                 completion: @escaping () -> Void) {
-        InterstitialAdManager.shared.showAd(from: viewController, completion: completion)
+    public func showInterstitialIfAvailable() {
+        InterstitialAdManager.shared.showAd()
     }
     
     // MARK: - Banner Ad
@@ -216,14 +213,11 @@ public final class AdsManager: NSObject {
     }
     
     // MARK: - Native Ad
-    public func preloadNativeAds() {
-        NativeAdManager.shared.preloadNativeAds()
-    }
-    
     public func loadNative(in containerView: UIView,
+                           rootViewController: UIViewController,
                            adType: AdType = .SMALL,
                            completion: ((Bool) -> Void)? = nil) {
-        NativeAdManager.shared.getAd(in: containerView, adType: adType, completion: completion ?? { _ in })
+        NativeAdManager.shared.getAd(in: containerView, viewController: rootViewController, adType: adType, completion: completion ?? { _ in })
     }
     
     /// Binds a NativeAd model to a NativeAdView (fills views, hides empty assets, sets nativeAd property).

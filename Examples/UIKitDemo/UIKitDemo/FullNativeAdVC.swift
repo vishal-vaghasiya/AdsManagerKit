@@ -15,7 +15,7 @@ class FullNativeAdVC: UIViewController {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        AdsManager.shared.loadNative(in: nativeAdView, adType: .LARGE)
+        AdsManager.shared.loadNative(in: nativeAdView, rootViewController: self, adType: .LARGE)
     }
     
 

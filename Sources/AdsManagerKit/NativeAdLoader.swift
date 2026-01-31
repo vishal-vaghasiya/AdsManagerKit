@@ -1,80 +1,151 @@
 import GoogleMobileAds
 import Foundation
+import UIKit
+
+public protocol NativeAdLoaderOutput: AnyObject {
+    func nativeAdLoader(_ loader: NativeAdLoader, didLoad ad: NativeAd)
+    func nativeAdLoader(_ loader: NativeAdLoader, didFailWith error: Error)
+}
+
 @MainActor
 public final class NativeAdLoader: NSObject {
     
     public static let shared = NativeAdLoader()
     
-    private var targetCount = 0
+    // MARK: - State
+    private var targetCount: Int = 0
     private var loadedAds: [NativeAd] = []
-    private var errorCount = 0
-    private let maxErrorLimit = 3
-    private var completion: (([NativeAd]) -> Void)?
-    private var loaders: [AdLoader] = []
+    private var activeLoaders: Set<AdLoader> = []
     
-    public override init() {
+    private var completion: (([NativeAd]) -> Void)?
+    private weak var rootViewController: UIViewController?
+    
+    private var currentNativeAdErrorCount: Int = 0
+    private var lastNativeAdErrorTime: Date?
+    private let nativeAdRetryCooldown: TimeInterval = 60
+    
+    public weak var output: NativeAdLoaderOutput?
+    
+    private override init() {
         super.init()
     }
     
+    // MARK: - Public API
     public func loadNativeAds(
         count: Int,
+        rootViewController: UIViewController,
         completion: @escaping ([NativeAd]) -> Void
     ) {
-        guard AdsConfig.nativeAdEnabled else {
+        guard AdsConfig.nativeAdEnabled, count > 0 else {
             completion([])
             return
         }
         
-        // Reset each fresh call
         self.targetCount = count
         self.loadedAds = []
-        self.errorCount = 0
-        self.loaders.removeAll()
+        self.activeLoaders.removeAll()
         self.completion = completion
+        self.rootViewController = rootViewController
+        if let output = rootViewController as? NativeAdLoaderOutput {
+            self.output = output
+        }
         
-        loadNext()
+        loadNextIfPossible()
     }
     
-    private func loadNext() {
+    // MARK: - Loading Logic
+    private func loadNextIfPossible() {
         // Stop conditions
         if loadedAds.count >= targetCount {
-            completion?(loadedAds)
+            finish()
             return
         }
-        if errorCount >= maxErrorLimit {
-            completion?(loadedAds)
+        
+        guard !hasExceededErrorLimit() else {
+            finish()
+            return
+        }
+        
+        guard activeLoaders.isEmpty else {
             return
         }
         
         let loader = AdLoader(
             adUnitID: AdsConfig.nativeAdUnitId,
-            rootViewController: nil,
+            rootViewController: rootViewController,
             adTypes: [.native],
             options: nil
         )
         
         loader.delegate = self
-        loaders.append(loader)
+        activeLoaders.insert(loader)
         loader.load(Request())
+    }
+    
+    private func resetErrorCounter() {
+        currentNativeAdErrorCount = 0
+        lastNativeAdErrorTime = nil
+    }
+    
+    private func incrementErrorCounter() {
+        currentNativeAdErrorCount += 1
+        lastNativeAdErrorTime = Date()
+    }
+    
+    private func hasExceededErrorLimit() -> Bool {
+        if currentNativeAdErrorCount < AdsConfig.nativeAdErrorCount {
+            return false
+        }
+        
+        guard let lastErrorTime = lastNativeAdErrorTime else {
+            return true
+        }
+        
+        let canRetry = Date().timeIntervalSince(lastErrorTime) >= nativeAdRetryCooldown
+        if canRetry {
+            resetErrorCounter()
+        }
+        
+        return !canRetry
+    }
+    
+    private func finish() {
+        completion?(loadedAds)
+        completion = nil
+        rootViewController = nil
+        activeLoaders.removeAll()
     }
 }
 
 // MARK: - NativeAdLoaderDelegate
 extension NativeAdLoader: NativeAdLoaderDelegate {
+    
     nonisolated public func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
-        
-        let loaderID = ObjectIdentifier(adLoader)
         Task { @MainActor in
-            loadedAds.append(nativeAd)
-            loadNext()
+            self.activeLoaders.remove(adLoader)
+            self.resetErrorCounter()
+            self.loadedAds.append(nativeAd)
+            self.output?.nativeAdLoader(self, didLoad: nativeAd)
+            guard self.loadedAds.count < self.targetCount else {
+                self.finish()
+                return
+            }
+            self.loadNextIfPossible()
         }
     }
     
-    nonisolated public func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
-        let loaderID = ObjectIdentifier(adLoader)
+    @objc nonisolated public func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: Error) {
         Task { @MainActor in
-            errorCount += 1
-            loadNext()
+            self.activeLoaders.remove(adLoader)
+            self.incrementErrorCounter()
+            self.output?.nativeAdLoader(self, didFailWith: error)
+            guard self.loadedAds.count < self.targetCount else {
+                self.finish()
+                return
+            }
+            self.loadNextIfPossible()
         }
     }
 }
+
+extension AdLoader: @unchecked Sendable {}
