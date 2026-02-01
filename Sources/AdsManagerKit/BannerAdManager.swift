@@ -129,6 +129,7 @@ final class BannerAdManager: NSObject {
             #if DEBUG
             print("[BannerAd] ⛔️ Banner load already in progress. Ignoring duplicate request.")
             #endif
+            completion(false, 0)
             return
         }
 
