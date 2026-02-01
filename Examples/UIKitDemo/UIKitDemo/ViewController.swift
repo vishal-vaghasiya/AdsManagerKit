@@ -21,7 +21,9 @@ class ViewController: UIViewController {
                                 interstitialAdErrorCount: 7,
                                 nativeAdErrorCount: 7)
         
-        AdsManager.configure()
+        AdsManager.configure {
+            
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {

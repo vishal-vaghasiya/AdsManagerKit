@@ -60,25 +60,29 @@ public final class AdsManager: NSObject {
         AdsConfig.nativeAdErrorCount = nativeAdErrorCount
     }
     
-    public static func configure() {
+    public static func configure(completion: (() -> Void)? = nil) {
         Task { @MainActor in
             // 1) Gather / update consent (first launch or EEA flow)
             AdsManager.shared.requestUMPConsent { canRequestAds in
                 if canRequestAds {
-                    AdsManager.startAdsFlow()
+                    AdsManager.startAdsFlow(completion: completion)
+                } else {
+                    // Consent flow finished (popup shown or not)
+                    completion?()
                 }
             }
             
             // 2) Start ads immediately for returning users with cached consent
             if AdsManager.shared.canRequestAds {
-                AdsManager.startAdsFlow()
+                AdsManager.startAdsFlow(completion: completion)
             }
         }
     }
     
-    private static func startAdsFlow() {
+    private static func startAdsFlow(completion: (() -> Void)? = nil) {
         let manager = AdsManager.shared
         guard !manager.isMobileAdsStartCalled else {
+            completion?()
             return
         }
         
@@ -87,6 +91,7 @@ public final class AdsManager: NSObject {
         MobileAds.shared.start { _ in
             NotificationCenter.default.post(name: AdsManager.adsDidStartNotification, object: nil)
             manager.loadInterstitial()
+            completion?()
         }
     }
     
