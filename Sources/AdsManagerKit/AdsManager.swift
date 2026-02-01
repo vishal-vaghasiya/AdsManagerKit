@@ -97,6 +97,9 @@ public final class AdsManager: NSObject {
     
     public static let shared = AdsManager()
     private var isMobileAdsStartCalled = false
+    public var isAdsStarted: Bool {
+        return isMobileAdsStartCalled
+    }
     
     // Call this before setupAds
     public func requestATTAuthorization(completion: @Sendable @escaping (Bool) -> Void) {
