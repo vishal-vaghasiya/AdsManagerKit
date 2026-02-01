@@ -10,7 +10,6 @@ public final class AdsManager: NSObject {
     /// - Parameters:
     ///   - isProduction: True for production AdMob IDs, false for test IDs
     ///   - openAdEnabled: Enable App Open Ads
-    ///   - openAdOnLaunchEnabled: Enable Open Ads on Launch
     ///   - bannerAdEnabled: Enable Banner Ads
     ///   - interstitialAdEnabled: Enable Interstitial Ads
     ///   - nativeAdEnabled: Enable Native Ads
@@ -26,7 +25,6 @@ public final class AdsManager: NSObject {
     public static func configureAds(
         isProduction: Bool,
         openAdEnabled: Bool,
-        openAdOnLaunchEnabled: Bool,
         bannerAdEnabled: Bool,
         interstitialAdEnabled: Bool,
         nativeAdEnabled: Bool,
@@ -43,7 +41,6 @@ public final class AdsManager: NSObject {
         // Configure AdsConfig with provided or default values
         AdsConfig.isProduction = isProduction
         AdsConfig.openAdEnabled = openAdEnabled
-        AdsConfig.openAdOnLaunchEnabled = openAdOnLaunchEnabled
         AdsConfig.bannerAdEnabled = bannerAdEnabled
         AdsConfig.interstitialAdEnabled = interstitialAdEnabled
         AdsConfig.nativeAdEnabled = nativeAdEnabled

@@ -43,11 +43,6 @@ public struct AdsConfig {
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var openAdOnLaunchEnabled: Bool {
-        get { adEnabled(#function) }
-        set { UserDefaults.standard.set(newValue, forKey: #function) }
-    }
-    
     // MARK: - Ad Unit Identifiers
     // Stores the AdMob unit IDs for each ad format
     static var openAdUnitId: String {
