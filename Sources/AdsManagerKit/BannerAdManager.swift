@@ -141,11 +141,11 @@ final class BannerAdManager: NSObject {
             return
         }
 
-        if let existingBanner = bannerView {
+        /*if let existingBanner = bannerView {
             existingBanner.removeFromSuperview()
             existingBanner.delegate = nil
             bannerView = nil
-        }
+        }*/
 
         self.lastBannerType = type
 

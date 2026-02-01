@@ -99,7 +99,7 @@ final class NativeAdManager: NSObject {
     /// star rating display are configured correctly.
     private func displayNativeAd(in containerView: UIView, _ nativeAd: NativeAd, adType: AdType) {
         // Remove any existing native ad views to prevent stacking
-        containerView.subviews.forEach { $0.removeFromSuperview() }
+        //containerView.subviews.forEach { $0.removeFromSuperview() }
         
         // Load the custom XIB
         guard let adView = Bundle.module.loadNibNamed(adType.rawValue, owner: nil, options: nil)?.first as? NativeAdView else {
