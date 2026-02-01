@@ -19,7 +19,7 @@ final class BannerAdManager: NSObject {
     private let bannerAdRetryCooldown: TimeInterval = 60
     
     private var refreshTimer: Timer?
-    private let bannerRefreshInterval: TimeInterval = 60 // seconds
+    private let bannerRefreshInterval: TimeInterval = 90 // seconds (optimized for adaptive banners & eCPM)
 
     private var isRefreshPausedByBackground: Bool = false
 

@@ -13,8 +13,8 @@ final class NativeAdManager: NSObject {
     private var completionHandlers: [AdLoader: (NativeAd?) -> Void] = [:]
     
     private var lastNativeAdErrorTime: Date?
-    private let nativeAdRetryCooldown: TimeInterval = 60
-    
+    private let nativeAdRetryCooldown: TimeInterval = 90 // seconds (optimized for native ads stability & eCPM)
+
     private override init() {
         super.init()
     }

@@ -21,11 +21,8 @@ class ViewController: UIViewController {
                                 bannerAdErrorCount: 7,
                                 interstitialAdErrorCount: 7,
                                 nativeAdErrorCount: 7)
-        DispatchQueue.main.async {
-            AdsManager.configure {
-                
-            }
-        }
+        
+        AdsManager.configure()
     }
     
     override func viewDidAppear(_ animated: Bool) {

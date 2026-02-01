@@ -18,7 +18,7 @@ public final class AppOpenAdManager: NSObject {
     private var isShowingAd = false
     /// Keeps track of the time when an app open ad was loaded to discard expired ad.
     private var adLoadTime: Date?
-    private let adValidityDuration: TimeInterval = 4 * 3_600 / 3
+    private let adValidityDuration: TimeInterval = 4 * 3_600
     
     public static let shared = AppOpenAdManager()
     // MARK: - Private Methods
@@ -37,64 +37,6 @@ public final class AppOpenAdManager: NSObject {
     private func createAdRequest() -> Request {
         // Latest UMP SDK automatically handles ATT/GDPR
         return Request()
-    }
-    
-    // MARK: - Public Methods
-    
-    public func loadAndShow(completion: @escaping @Sendable () -> Void) {
-        guard ConsentInformation.shared.canRequestAds else {
-            #if DEBUG
-            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping load.")
-            #endif
-            completion()
-            return
-        }
-        guard !isShowingAd else {
-            completion()
-            return
-        }
-        self.appOpenAdManagerAdDidComplete = completion
-        if isLoadingAd || isAdAvailable() {
-            completion()
-            return
-        }
-        
-        guard AdsConfig.openAdOnLaunchEnabled else {
-            completion()
-            return
-        }
-        
-        isLoadingAd = true
-        let request = createAdRequest()
-        AppOpenAd.load(
-            with: AdsConfig.openAdUnitId,
-            request: request
-        ) { [weak self] ad, error in
-            Task { @MainActor in
-                guard let self else {
-                    completion()
-                    return
-                }
-                if let error = error {
-                    self.isLoadingAd = false
-                    self.appOpenAd = nil
-                    self.adLoadTime = nil
-                    self.didFirstLoadFail = true
-                    #if DEBUG
-                    print("[AppOpenAd] Failed to load: \(error)")
-                    #endif
-                    completion()
-                    return
-                }
-                self.appOpenAd = ad
-                self.appOpenAd?.fullScreenContentDelegate = self
-                self.adLoadTime = Date()
-                self.isLoadingAd = false
-                #if DEBUG
-                print("[AppOpenAd] loaded.")
-                #endif
-            }
-        }
     }
     
     func loadOpenAd() {

@@ -14,7 +14,6 @@ public final class AdsManager: NSObject {
     ///   - bannerAdEnabled: Enable Banner Ads
     ///   - interstitialAdEnabled: Enable Interstitial Ads
     ///   - nativeAdEnabled: Enable Native Ads
-    ///   - nativeAdPreloadEnabled: Preload native ads in advance
     ///   - openAdUnitId: Optional App Open Ad Unit ID (default uses placeholder/test ID)
     ///   - bannerAdUnitId: Optional Banner Ad Unit ID (default uses placeholder/test ID)
     ///   - interstitialAdUnitId: Optional Interstitial Ad Unit ID
@@ -35,8 +34,8 @@ public final class AdsManager: NSObject {
         bannerAdUnitId: String? = nil,
         interstitialAdUnitId: String? = nil,
         nativeAdUnitId: String? = nil,
-        interstitialAdShowCount: Int = 4,
-        maxInterstitialAdsPerSession: Int = 50,
+        interstitialAdShowCount: Int = 3,
+        maxInterstitialAdsPerSession: Int = 10,
         bannerAdErrorCount: Int = 7,
         interstitialAdErrorCount: Int = 7,
         nativeAdErrorCount: Int = 7
@@ -62,36 +61,33 @@ public final class AdsManager: NSObject {
         AdsConfig.nativeAdErrorCount = nativeAdErrorCount
     }
     
-    public static func configure(_ completion: @Sendable @escaping () -> Void) {
-        #if DEBUG
-        ConsentInformation.shared.reset()
-        #endif
-        // Request ATT first, then UMP consent
-        AdsManager.shared.requestATTAuthorization { authorized in
-            Task { @MainActor in
-                if authorized {
-                    AdsManager.shared.requestUMPConsent { canRequestAds in
-                        if canRequestAds {
-                            AdsManager.shared.loadInterstitial()
-                        }
-                        Self.startAdsFlow(completion: completion)
-                    }
-                } else {
-                    // ATT denied — do NOT reset UMP consent automatically.
-                    // UMP will handle non‑personalized ads via canRequestAds.
-                    if ConsentInformation.shared.canRequestAds {
-                        AdsManager.shared.loadInterstitial()
-                    }
-                    Self.startAdsFlow(completion: completion)
+    public static func configure() {
+        Task { @MainActor in
+            // 1) Gather / update consent (first launch or EEA flow)
+            AdsManager.shared.requestUMPConsent { canRequestAds in
+                if canRequestAds {
+                    AdsManager.startAdsFlow()
                 }
+            }
+            
+            // 2) Start ads immediately for returning users with cached consent
+            if AdsManager.shared.canRequestAds {
+                AdsManager.startAdsFlow()
             }
         }
     }
     
-    private static func startAdsFlow(completion: @Sendable @escaping () -> Void) {
-        MobileAds.shared.start()
-        AdsManager.shared.loadOpenAd()
-        completion()
+    private static func startAdsFlow() {
+        let manager = AdsManager.shared
+        guard !manager.isMobileAdsStartCalled else {
+            return
+        }
+        
+        manager.isMobileAdsStartCalled = true
+        
+        MobileAds.shared.start { _ in
+            manager.loadInterstitial()
+        }
     }
     
     public static func setToPremium(_ isPremium: Bool) {
@@ -100,6 +96,7 @@ public final class AdsManager: NSObject {
     }
     
     public static let shared = AdsManager()
+    private var isMobileAdsStartCalled = false
     
     // Call this before setupAds
     public func requestATTAuthorization(completion: @Sendable @escaping (Bool) -> Void) {
@@ -125,17 +122,7 @@ public final class AdsManager: NSObject {
     
     public func requestUMPConsent(completion: @Sendable @escaping @MainActor (Bool) -> Void) {
         let parameters = RequestParameters()
-        #if DEBUG
-        let debugSettings = DebugSettings()
-        debugSettings.geography = .EEA
-        parameters.debugSettings = debugSettings
-        #endif
         ConsentInformation.shared.requestConsentInfoUpdate(with: parameters) { error in
-            #if DEBUG
-            if let error = error {
-                print("UMP ConsentInfoUpdate error: \(error.localizedDescription)")
-            }
-            #endif
             if let _ = error {
                 completion(false)
                 return
@@ -180,23 +167,13 @@ public final class AdsManager: NSObject {
         return topController
     }
     
-    public func resetErrorCounters() {
-        BannerAdManager.shared.resetErrorCounter()
-        InterstitialAdManager.shared.resetErrorCounter()
-        NativeAdManager.shared.resetErrorCounter()
-    }
-    
-    // MARK: - App Open Ad
-    public func loadOpenAd() {
-        AppOpenAdManager.shared.loadOpenAd()
-    }
-    
+    // MARK: - App OpenAd
     public func presentAppOpenAdIfAvailable() {
         AppOpenAdManager.shared.tryToPresentAd()
     }
     
     // MARK: - Interstitial Ad
-    public func loadInterstitial() {
+    private func loadInterstitial() {
         InterstitialAdManager.shared.loadAd()
     }
     

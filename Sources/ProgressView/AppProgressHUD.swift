@@ -2,7 +2,7 @@ import UIKit
 import JGProgressHUD
 
 @MainActor
-public final class KVNProgress {
+public final class AppProgressHUD {
 
     private static var hud = JGProgressHUD()
 

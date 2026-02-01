@@ -16,7 +16,7 @@ class BannerAdVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        AdsManager.shared.loadBanner(in: regularBannerView, rootViewController: self, type: .REGULAR) { _, _ in }
+        //AdsManager.shared.loadBanner(in: regularBannerView, rootViewController: self, type: .REGULAR) { _, _ in }
         
         AdsManager.shared.loadBanner(in: adaptiveBannerView, rootViewController: self, type: .ADAPTIVE) { _, height in
             self.conAdaptiveBannerHeight.constant = height

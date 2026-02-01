@@ -115,9 +115,9 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
             sessionLimitCounter += 1
             resetErrorCounter()
             
-            KVNProgress.show(status: "Showing Ad")
+            AppProgressHUD.show(status: "Showing Ad")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                KVNProgress.dismiss()
+                AppProgressHUD.dismiss()
                 self.lastInterstitialShownAt = Date()
                 ad.present(from: UIApplication.shared.windows.first!.rootViewController)
             }
@@ -149,23 +149,4 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         print("[InterstitialAd] Will present")
         #endif
     }
-}
-
-extension UIApplication {
-    func topMostViewController(base: UIViewController? = UIApplication.shared.connectedScenes
-        .compactMap { ($0 as? UIWindowScene)?.keyWindow }
-        .first?.rootViewController) -> UIViewController? {
-            if let nav = base as? UINavigationController {
-                return topMostViewController(base: nav.visibleViewController)
-            }
-            if let tab = base as? UITabBarController {
-                if let selected = tab.selectedViewController {
-                    return topMostViewController(base: selected)
-                }
-            }
-            if let presented = base?.presentedViewController {
-                return topMostViewController(base: presented)
-            }
-            return base
-        }
 }

@@ -22,7 +22,7 @@ public final class NativeAdLoader: NSObject {
     
     private var currentNativeAdErrorCount: Int = 0
     private var lastNativeAdErrorTime: Date?
-    private let nativeAdRetryCooldown: TimeInterval = 60
+    private let nativeAdRetryCooldown: TimeInterval = 90 // seconds (optimized for native ads stability & eCPM)
     
     public weak var output: NativeAdLoaderOutput?
     
