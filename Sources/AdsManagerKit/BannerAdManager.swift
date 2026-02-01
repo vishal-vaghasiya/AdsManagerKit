@@ -125,14 +125,7 @@ final class BannerAdManager: NSObject {
             completion(false, 0)
             return
         }
-        guard completionHandler == nil else {
-            #if DEBUG
-            print("[BannerAd] ⛔️ Banner load already in progress. Ignoring duplicate request.")
-            #endif
-            completion(false, 0)
-            return
-        }
-
+        
         guard !hasExceededErrorLimit() else {
             #if DEBUG
             print("[BannerAd] ⚠️ Max retries exceeded — not loading or showing.")
@@ -141,6 +134,16 @@ final class BannerAdManager: NSObject {
             return
         }
 
+        guard completionHandler == nil else {
+            #if DEBUG
+            print("[BannerAd] 🔁 Banner load in progress — switching to latest screen.")
+            #endif
+
+            // Transfer ownership of the result to the new caller
+            completionHandler = completion
+            return
+        }
+        
         /*if let existingBanner = bannerView {
             existingBanner.removeFromSuperview()
             existingBanner.delegate = nil
