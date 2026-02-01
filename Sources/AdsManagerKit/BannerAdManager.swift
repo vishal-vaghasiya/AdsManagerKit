@@ -134,7 +134,7 @@ final class BannerAdManager: NSObject {
             return
         }
 
-        guard completionHandler == nil else {
+        /*guard completionHandler == nil else {
             #if DEBUG
             print("[BannerAd] 🔁 Banner load in progress — switching to latest screen.")
             #endif
@@ -142,7 +142,7 @@ final class BannerAdManager: NSObject {
             // Transfer ownership of the result to the new caller
             completionHandler = completion
             return
-        }
+        }*/
         
         /*if let existingBanner = bannerView {
             existingBanner.removeFromSuperview()
