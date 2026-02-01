@@ -6,6 +6,8 @@ import UserMessagingPlatform
 @MainActor
 public final class AdsManager: NSObject {
     
+    public static let adsDidStartNotification = Notification.Name("AdsManagerAdsDidStart")
+    
     /// Configure all ad settings at once
     /// - Parameters:
     ///   - isProduction: True for production AdMob IDs, false for test IDs
@@ -83,6 +85,7 @@ public final class AdsManager: NSObject {
         manager.isMobileAdsStartCalled = true
         
         MobileAds.shared.start { _ in
+            NotificationCenter.default.post(name: AdsManager.adsDidStartNotification, object: nil)
             manager.loadInterstitial()
         }
     }

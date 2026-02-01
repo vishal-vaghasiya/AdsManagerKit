@@ -12,7 +12,6 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         AdsManager.configureAds(isProduction: false,
                                 openAdEnabled: true,
-                                openAdOnLaunchEnabled: true,
                                 bannerAdEnabled: true,
                                 interstitialAdEnabled: true,
                                 nativeAdEnabled: true,
