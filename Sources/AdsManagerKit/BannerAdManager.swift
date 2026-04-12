@@ -1,7 +1,7 @@
 import GoogleMobileAds
 import SwiftUI
 import UIKit
-public enum BannerAdType: String {
+public enum BannerAdType: String, Sendable {
     case ADAPTIVE
     case REGULAR
 }
@@ -100,13 +100,17 @@ final class BannerAdManager: NSObject {
     ) {
         stopBannerRefresh()
 
+        let localType = type
         refreshTimer = Timer.scheduledTimer(withTimeInterval: bannerRefreshInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            self.loadBannerAd(
-                in: containerView,
-                vc: vc,
-                type: type
-            ) { _, _ in }
+            
+            DispatchQueue.main.async {
+                self.loadBannerAd(
+                    in: containerView,
+                    vc: vc,
+                    type: localType
+                ) { _, _ in }
+            }
         }
     }
 
