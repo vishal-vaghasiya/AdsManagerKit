@@ -15,7 +15,7 @@ let package = Package(
             targets: ["AdsManager"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads", from: "13.1.0"),
+        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads", from: "13.2.0"),
         .package(url: "https://github.com/JonasGessner/JGProgressHUD.git", from: "2.2.0")
     ],
     targets: [
