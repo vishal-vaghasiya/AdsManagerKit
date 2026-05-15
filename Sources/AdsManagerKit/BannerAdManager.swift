@@ -4,6 +4,7 @@ import UIKit
 public enum BannerAdType: String, Sendable {
     case ADAPTIVE
     case REGULAR
+    case LARGE
 }
 
 @MainActor
@@ -138,32 +139,27 @@ final class BannerAdManager: NSObject {
             return
         }
 
-        /*guard completionHandler == nil else {
-            #if DEBUG
-            print("[BannerAd] 🔁 Banner load in progress — switching to latest screen.")
-            #endif
-
-            // Transfer ownership of the result to the new caller
-            completionHandler = completion
-            return
-        }*/
-        
-        /*if let existingBanner = bannerView {
-            existingBanner.removeFromSuperview()
-            existingBanner.delegate = nil
-            bannerView = nil
-        }*/
-
         self.lastBannerType = type
 
-        let viewWidth = containerView.bounds.width > 0 ? containerView.bounds.width : UIScreen.main.bounds.width
+        let viewWidth = containerView.bounds.width > 0
+            ? containerView.bounds.width
+            : UIScreen.main.bounds.width
+
         var adSize: AdSize
-        if type == .ADAPTIVE {
+
+        switch type {
+
+        case .ADAPTIVE:
             adSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
             bannerHeight = adSize.size.height
-        } else {
-            adSize = AdSize(size: CGSize(width: 320, height: 50), flags: 0)
-            bannerHeight = adSize.size.height
+
+        case .REGULAR:
+            adSize = AdSizeBanner
+            bannerHeight = 50
+
+        case .LARGE:
+            adSize = AdSizeLargeBanner
+            bannerHeight = 100
         }
 
         let banner = BannerView(adSize: adSize)

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24412" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="DR1-h4-nlz">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24765" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="DR1-h4-nlz">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24405"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24743"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -114,32 +115,42 @@
                                             </view>
                                         </subviews>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Bv8-go-xEJ">
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="die-Iv-a8Y">
                                         <rect key="frame" x="0.0" y="130.33333333333331" width="393" height="80.333333333333314"/>
                                         <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Adaptive Banner" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Nlu-0D-PE2">
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Large Banner" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n83-6W-GOv">
                                                 <rect key="frame" x="0.0" y="0.0" width="393" height="20.333333333333332"/>
                                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hXO-f7-mjo">
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Thp-Cd-Qwg">
                                                 <rect key="frame" x="0.0" y="30.333333333333371" width="393" height="50"/>
                                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="height" constant="50" id="LcQ-dw-LKi"/>
+                                                    <constraint firstAttribute="height" constant="50" id="ONS-Dp-KBD"/>
                                                 </constraints>
                                             </view>
                                         </subviews>
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hXO-f7-mjo">
+                                <rect key="frame" x="0.0" y="684" width="393" height="100"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="100" id="LcQ-dw-LKi"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="qal-3M-hV8"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="hXO-f7-mjo" firstAttribute="leading" secondItem="qal-3M-hV8" secondAttribute="leading" id="AgM-h8-2yb"/>
+                            <constraint firstItem="hXO-f7-mjo" firstAttribute="trailing" secondItem="qal-3M-hV8" secondAttribute="trailing" id="CG6-bV-CaR"/>
                             <constraint firstItem="pyy-id-DbQ" firstAttribute="top" secondItem="qal-3M-hV8" secondAttribute="top" constant="30" id="MKc-n7-spd"/>
                             <constraint firstItem="pyy-id-DbQ" firstAttribute="leading" secondItem="qal-3M-hV8" secondAttribute="leading" id="SNF-h9-1Il"/>
+                            <constraint firstItem="hXO-f7-mjo" firstAttribute="bottom" secondItem="qal-3M-hV8" secondAttribute="bottom" id="meh-LD-X4X"/>
                             <constraint firstItem="pyy-id-DbQ" firstAttribute="trailing" secondItem="qal-3M-hV8" secondAttribute="trailing" id="vAF-ut-vo9"/>
                         </constraints>
                     </view>
@@ -147,6 +158,8 @@
                     <connections>
                         <outlet property="adaptiveBannerView" destination="hXO-f7-mjo" id="7Nw-Ky-DG0"/>
                         <outlet property="conAdaptiveBannerHeight" destination="LcQ-dw-LKi" id="yxD-LO-AjO"/>
+                        <outlet property="conLargeBannerHeight" destination="ONS-Dp-KBD" id="RYn-yG-p42"/>
+                        <outlet property="largeBannerView" destination="Thp-Cd-Qwg" id="APS-cI-Hp3"/>
                         <outlet property="regularBannerView" destination="llr-vm-nrS" id="aUC-hI-mtc"/>
                     </connections>
                 </viewController>
@@ -317,7 +330,7 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGroupedBackgroundColor">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
