@@ -2,14 +2,24 @@
 //  SwiftUIDemoApp.swift
 //  SwiftUIDemo
 //
-//  Created by Nexios Technologies on 18/11/25.
 //
 
+import AdsManagerKit
 import SwiftUI
-import CoreData
 
 @main
 struct SwiftUIDemoApp: App {
+    init() {
+        AdsManager.configureAds(
+            isProduction: false,
+            openAdEnabled: false,
+            bannerAdEnabled: true,
+            interstitialAdEnabled: false,
+            nativeAdEnabled: true
+        )
+        AdsManager.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

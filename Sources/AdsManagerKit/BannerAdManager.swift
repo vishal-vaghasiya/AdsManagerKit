@@ -1,7 +1,7 @@
 import GoogleMobileAds
 import SwiftUI
 import UIKit
-public enum BannerAdType: String, Sendable {
+public enum BannerAdType: String, CaseIterable, Hashable, Sendable {
     case ADAPTIVE
     case REGULAR
     case LARGE
@@ -189,7 +189,8 @@ final class BannerAdManager: NSObject {
     
     /// SwiftUI-friendly banner container
     public func makeBannerContainer(adType: BannerAdType = .REGULAR,
-                                    onAdLoaded: ((CGFloat) -> Void)? = nil) -> UIView {
+                                    onAdLoaded: ((CGFloat) -> Void)? = nil,
+                                    onAdStateChanged: ((Bool, CGFloat) -> Void)? = nil) -> UIView {
         let containerView = UIView()
         
         guard let rootVC = UIApplication.shared
@@ -204,8 +205,12 @@ final class BannerAdManager: NSObject {
         // Call existing loadBannerAd, but forward a SwiftUI callback separately
         loadBannerAd(in: containerView, vc: rootVC, type: adType) { success, height in
             DispatchQueue.main.async {
-                containerView.frame.size.height = height
-                onAdLoaded?(height)
+                let resolvedHeight = success ? height : 0
+                containerView.frame.size.height = resolvedHeight
+                onAdStateChanged?(success, resolvedHeight)
+                if success {
+                    onAdLoaded?(resolvedHeight)
+                }
             }
         }
         
@@ -249,15 +254,28 @@ extension BannerAdManager: BannerViewDelegate {
 public struct BannerAdView: UIViewRepresentable {
     public var adType: BannerAdType = .REGULAR
     public var onAdLoaded: ((CGFloat) -> Void)? = nil
+    @Binding private var isLoaded: Bool
+    @Binding private var height: CGFloat
 
     public init(adType: BannerAdType = .REGULAR,
+                isLoaded: Binding<Bool> = .constant(false),
+                height: Binding<CGFloat> = .constant(0),
                 onAdLoaded: ((CGFloat) -> Void)? = nil) {
         self.adType = adType
+        self._isLoaded = isLoaded
+        self._height = height
         self.onAdLoaded = onAdLoaded
     }
 
     public func makeUIView(context: Context) -> UIView {
-        BannerAdManager.shared.makeBannerContainer(adType: adType, onAdLoaded: onAdLoaded)
+        BannerAdManager.shared.makeBannerContainer(
+            adType: adType,
+            onAdLoaded: onAdLoaded,
+            onAdStateChanged: { loaded, resolvedHeight in
+                isLoaded = loaded
+                height = resolvedHeight
+            }
+        )
     }
 
     public func updateUIView(_ uiView: UIView, context: Context) { }

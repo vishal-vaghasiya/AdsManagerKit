@@ -1,9 +1,21 @@
 import GoogleMobileAds
+import SwiftUI
 import UIKit
-public enum AdType: String {
+public enum AdType: String, CaseIterable, Hashable, Sendable {
     case SMALL = "NativeAdView_Small"   //108
     case MEDIUM = "NativeAdView_Medium" //170
     case LARGE = "NativeAdView"         //280
+
+    public var height: CGFloat {
+        switch self {
+        case .SMALL:
+            return 108
+        case .MEDIUM:
+            return 170
+        case .LARGE:
+            return 280
+        }
+    }
 }
 @MainActor
 final class NativeAdManager: NSObject {
@@ -52,14 +64,14 @@ final class NativeAdManager: NSObject {
     }
     
     // MARK: - Get Ad (Always Load On Demand)
-    func getAd(in containerView: UIView, viewController: UIViewController, adType: AdType, completion: @escaping (Bool) -> Void) {
+    func getAd(in containerView: UIView, viewController: UIViewController, adType: AdType, completion: @escaping (Bool, CGFloat) -> Void) {
         loadAd(rootViewController: viewController) { [weak self] ad in
             guard let self else { return }
             if let ad {
                 self.displayNativeAd(in: containerView, ad, adType: adType)
-                completion(true)
+                completion(true, adType.height)
             } else {
-                completion(false)
+                completion(false, 0)
             }
         }
     }
@@ -99,16 +111,22 @@ final class NativeAdManager: NSObject {
     /// star rating display are configured correctly.
     private func displayNativeAd(in containerView: UIView, _ nativeAd: NativeAd, adType: AdType) {
         // Remove any existing native ad views to prevent stacking
-        //containerView.subviews.forEach { $0.removeFromSuperview() }
+        containerView.subviews.forEach { $0.removeFromSuperview() }
         
         // Load the custom XIB
         guard let adView = Bundle.module.loadNibNamed(adType.rawValue, owner: nil, options: nil)?.first as? NativeAdView else {
             return
         }
         
-        // Set frame to match container
-        adView.frame = containerView.bounds
+        containerView.clipsToBounds = true
+        adView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(adView)
+        NSLayoutConstraint.activate([
+            adView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            adView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            adView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            adView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
         
         // Assign the nativeAd to GADNativeAdView
         adView.nativeAd = nativeAd
@@ -136,6 +154,53 @@ final class NativeAdManager: NSObject {
         adView.callToActionView?.isUserInteractionEnabled = false // Required
     }
     
+}
+
+// MARK: - SwiftUI Native Wrapper
+public struct NativeAdContainerView: UIViewRepresentable {
+    public var adType: AdType
+    @Binding private var isLoaded: Bool
+    @Binding private var height: CGFloat
+
+    public init(adType: AdType = .SMALL,
+                isLoaded: Binding<Bool> = .constant(false),
+                height: Binding<CGFloat> = .constant(0)) {
+        self.adType = adType
+        self._isLoaded = isLoaded
+        self._height = height
+    }
+
+    public func makeUIView(context: Context) -> UIView {
+        let containerView = UIView()
+        containerView.clipsToBounds = true
+        containerView.frame.size.height = adType.height
+
+        guard let rootVC = UIApplication.shared.adsManagerRootViewController else {
+            isLoaded = false
+            height = 0
+            return containerView
+        }
+
+        NativeAdManager.shared.getAd(in: containerView, viewController: rootVC, adType: adType) { loaded, resolvedHeight in
+            isLoaded = loaded
+            height = resolvedHeight
+            containerView.frame.size.height = resolvedHeight
+        }
+
+        return containerView
+    }
+
+    public func updateUIView(_ uiView: UIView, context: Context) { }
+}
+
+private extension UIApplication {
+    var adsManagerRootViewController: UIViewController? {
+        connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController
+    }
 }
 
 func getStarRatingImage(for rating: NSDecimalNumber) -> UIImage? {

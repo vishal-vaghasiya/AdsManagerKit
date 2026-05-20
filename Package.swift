@@ -4,12 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "AdsManager",
+    name: "AdsManagerKit",
     platforms: [
         .iOS(.v15) // <- minimum iOS version is 15
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
+        .library(
+            name: "AdsManagerKit",
+            targets: ["AdsManagerKit"]),
         .library(
             name: "AdsManager",
             targets: ["AdsManager"]),
@@ -22,14 +25,21 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "AdsManager",
+            name: "AdsManagerKit",
             dependencies: [
                 .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads"),
                 .product(name: "JGProgressHUD", package: "JGProgressHUD")
             ],
+            path: "Sources",
+            exclude: ["AdsManagerCompatibility"],
             resources: [
                 .process("Resources")
             ]
+        ),
+        .target(
+            name: "AdsManager",
+            dependencies: ["AdsManagerKit"],
+            path: "Sources/AdsManagerCompatibility"
         ),
             
     ],

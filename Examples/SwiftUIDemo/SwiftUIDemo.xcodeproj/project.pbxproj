@@ -7,17 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0F8153422ECC49180002EA0B /* ASKRatingKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8153412ECC49180002EA0B /* ASKRatingKit */; };
-		0F8153512ECC4E140002EA0B /* AppUpdateKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8153502ECC4E140002EA0B /* AppUpdateKit */; };
+		0F8153512ECC4E140002EA0B /* AdsManagerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8153502ECC4E140002EA0B /* AdsManagerKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0F8153092ECC48540002EA0B /* SwiftUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D31EC5C42FBDCA1600436880 /* Exceptions for "SwiftUIDemo" folder in "SwiftUIDemo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0F8153082ECC48540002EA0B /* SwiftUIDemo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0F81530B2ECC48540002EA0B /* SwiftUIDemo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D31EC5C42FBDCA1600436880 /* Exceptions for "SwiftUIDemo" folder in "SwiftUIDemo" target */,
+			);
 			path = SwiftUIDemo;
 			sourceTree = "<group>";
 		};
@@ -28,8 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0F8153512ECC4E140002EA0B /* AppUpdateKit in Frameworks */,
-				0F8153422ECC49180002EA0B /* ASKRatingKit in Frameworks */,
+				0F8153512ECC4E140002EA0B /* AdsManagerKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,8 +83,7 @@
 			);
 			name = SwiftUIDemo;
 			packageProductDependencies = (
-				0F8153412ECC49180002EA0B /* ASKRatingKit */,
-				0F8153502ECC4E140002EA0B /* AppUpdateKit */,
+				0F8153502ECC4E140002EA0B /* AdsManagerKit */,
 			);
 			productName = SwiftUIDemo;
 			productReference = 0F8153092ECC48540002EA0B /* SwiftUIDemo.app */;
@@ -104,7 +114,7 @@
 			mainGroup = 0F8153002ECC48540002EA0B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				0F81534F2ECC4E140002EA0B /* XCLocalSwiftPackageReference "../../../AppUpdateKit" */,
+				0F81534F2ECC4E140002EA0B /* XCLocalSwiftPackageReference "../.." */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0F81530A2ECC48540002EA0B /* Products */;
@@ -268,6 +278,7 @@
 				DEVELOPMENT_TEAM = A7DWKQ9LLS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SwiftUIDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -300,6 +311,7 @@
 				DEVELOPMENT_TEAM = A7DWKQ9LLS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SwiftUIDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -346,20 +358,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		0F81534F2ECC4E140002EA0B /* XCLocalSwiftPackageReference "../../../AppUpdateKit" */ = {
+		0F81534F2ECC4E140002EA0B /* XCLocalSwiftPackageReference "../.." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../../AppUpdateKit;
+			relativePath = ../..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		0F8153412ECC49180002EA0B /* ASKRatingKit */ = {
+		0F8153502ECC4E140002EA0B /* AdsManagerKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = ASKRatingKit;
-		};
-		0F8153502ECC4E140002EA0B /* AppUpdateKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppUpdateKit;
+			productName = AdsManagerKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
