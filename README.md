@@ -455,4 +455,4 @@ If you want to disable the Native Ad Validator in your app, add the following ke
 ## **👤 Author**
 
 Vishal Vaghasiya  
-GitHub: [vishalvaghasiya-ios](https://github.com/vishal-vaghasiya)
+GitHub: [vishalvaghasiya](https://github.com/vishal-vaghasiya)
