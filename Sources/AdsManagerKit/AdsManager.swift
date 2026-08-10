@@ -5,44 +5,48 @@ import GoogleMobileAds
 import UserMessagingPlatform
 @MainActor
 public final class AdsManager: NSObject {
-    
-    public static let adsDidStartNotification = Notification.Name("AdsManagerAdsDidStart")
-    
     /// Configure all ad settings at once
     /// - Parameters:
     ///   - isProduction: True for production AdMob IDs, false for test IDs
     ///   - openAdEnabled: Enable App Open Ads
+    ///   - openAdOnSplashEnabled: Controls whether an App Open Ad can be shown on the Splash screen.
+    ///     This does not affect App Open Ads shown when the app returns from the background.
     ///   - bannerAdEnabled: Enable Banner Ads
     ///   - interstitialAdEnabled: Enable Interstitial Ads
+    ///   - showInterstitialLoadingIndicator: Shows a loading indicator while preparing an Interstitial Ad for presentation.
     ///   - nativeAdEnabled: Enable Native Ads
     ///   - openAdUnitId: Optional App Open Ad Unit ID (default uses placeholder/test ID)
     ///   - bannerAdUnitId: Optional Banner Ad Unit ID (default uses placeholder/test ID)
     ///   - interstitialAdUnitId: Optional Interstitial Ad Unit ID
     ///   - nativeAdUnitId: Optional Native Ad Unit ID
     ///   - interstitialAdShowCount: Max times interstitial can show per session (default 4)
-    ///   - maxInterstitialAdsPerSession: Max interstitials per session (default 50)
-    ///   - bannerAdErrorCount: Max banner error count (default 7)
-    ///   - interstitialAdErrorCount: Max interstitial error count (default 7)
-    ///   - nativeAdErrorCount: Max native ad error count (default 7)
+    ///   - maxInterstitialAdsPerSession: Max interstitials per session (default 10)
+    ///   - bannerAdErrorCount: Max banner error count (default 5)
+    ///   - interstitialAdErrorCount: Max interstitial error count (default 5)
+    ///   - nativeAdErrorCount: Max native ad error count (default 5)
     public static func configureAds(
         isProduction: Bool,
         openAdEnabled: Bool,
+        openAdOnSplashEnabled: Bool,
         bannerAdEnabled: Bool,
         interstitialAdEnabled: Bool,
+        showInterstitialLoadingIndicator: Bool,
         nativeAdEnabled: Bool,
         openAdUnitId: String? = nil,
         bannerAdUnitId: String? = nil,
         interstitialAdUnitId: String? = nil,
         nativeAdUnitId: String? = nil,
-        interstitialAdShowCount: Int = 3,
-        maxInterstitialAdsPerSession: Int = 10,
-        bannerAdErrorCount: Int = 7,
-        interstitialAdErrorCount: Int = 7,
-        nativeAdErrorCount: Int = 7
+        interstitialAdShowCount: Int = 4,
+        maxInterstitialAdsPerSession: Int = 4,
+        bannerAdErrorCount: Int = 5,
+        interstitialAdErrorCount: Int = 5,
+        nativeAdErrorCount: Int = 5
     ) {
         // Configure AdsConfig with provided or default values
         AdsConfig.isProduction = isProduction
+        
         AdsConfig.openAdEnabled = openAdEnabled
+        AdsConfig.openAdOnSplashEnabled = openAdOnSplashEnabled
         AdsConfig.bannerAdEnabled = bannerAdEnabled
         AdsConfig.interstitialAdEnabled = interstitialAdEnabled
         AdsConfig.nativeAdEnabled = nativeAdEnabled
@@ -61,37 +65,51 @@ public final class AdsManager: NSObject {
     }
     
     public static func configure(completion: (() -> Void)? = nil) {
-        Task { @MainActor in
-            // 1) Gather / update consent (first launch or EEA flow)
-            AdsManager.shared.requestUMPConsent { canRequestAds in
+        // Gather / update consent.
+        AdsManager.shared.requestUMPConsent { canRequestAds in
+            Task { @MainActor in
                 if canRequestAds {
-                    AdsManager.startAdsFlow(completion: completion)
-                } else {
-                    // Consent flow finished (popup shown or not)
-                    completion?()
+                    await AdsManager.startAdsFlow()
                 }
+                
+                completion?()
             }
-            
-            // 2) Start ads immediately for returning users with cached consent
-            if AdsManager.shared.canRequestAds {
-                AdsManager.startAdsFlow(completion: completion)
+        }
+        
+        // Start ads immediately if valid consent was already obtained
+        // in a previous session.
+        if AdsManager.shared.canRequestAds {
+            Task { @MainActor in
+                await AdsManager.startAdsFlow()
             }
         }
     }
     
-    private static func startAdsFlow(completion: (() -> Void)? = nil) {
+    private static func startAdsFlow() async {
         let manager = AdsManager.shared
+
+        // Prevent Google Mobile Ads SDK from being initialized more than once.
         guard !manager.isMobileAdsStartCalled else {
-            completion?()
             return
         }
-        
+
         manager.isMobileAdsStartCalled = true
-        
-        MobileAds.shared.start { _ in
-            NotificationCenter.default.post(name: AdsManager.adsDidStartNotification, object: nil)
+
+        // Initialize Google Mobile Ads SDK once.
+        await withCheckedContinuation { continuation in
+            MobileAds.shared.start { _ in
+                continuation.resume()
+            }
+        }
+
+        // Preload App Open Ad.
+        if AdsConfig.openAdEnabled && AdsConfig.openAdOnSplashEnabled {
+            await AppOpenAdManager.shared.loadOpenAd()
+        }
+
+        // Preload Interstitial Ad.
+        if AdsConfig.interstitialAdEnabled {
             manager.loadInterstitial()
-            completion?()
         }
     }
     
@@ -128,56 +146,78 @@ public final class AdsManager: NSObject {
         return ConsentInformation.shared.canRequestAds
     }
     
-    public func requestUMPConsent(completion: @Sendable @escaping @MainActor (Bool) -> Void) {
+    public func requestUMPConsent(
+        completion: @Sendable @escaping @MainActor (Bool) -> Void
+    ) {
         let parameters = RequestParameters()
-        ConsentInformation.shared.requestConsentInfoUpdate(with: parameters) { error in
-            if let _ = error {
-                completion(false)
-                return
-            }
-            
-            ConsentForm.load { form, loadError in
-                #if DEBUG
-                if let loadError = loadError {
-                    print("UMP ConsentForm load error: \(loadError.localizedDescription)")
-                }
-                #endif
-                if let _ = loadError {
-                    completion(false)
+
+        Task { @MainActor in
+            do {
+                try await ConsentInformation.shared.requestConsentInfoUpdate(
+                    with: parameters
+                )
+
+                guard let topVC = self.topMostViewController() else {
+                    completion(ConsentInformation.shared.canRequestAds)
                     return
                 }
-                
-                if ConsentInformation.shared.formStatus == .available, let form = form {
-                    if let topVC = self.topMostViewController() {
-                        form.present(from: topVC) { dismissError in
-                            if let _ = dismissError {
-                                completion(false)
-                                return
-                            }
-                            completion(ConsentInformation.shared.canRequestAds)
-                        }
-                    } else {
-                        completion(ConsentInformation.shared.canRequestAds)
-                    }
-                } else {
-                    completion(ConsentInformation.shared.canRequestAds)
-                }
+
+                try await ConsentForm.loadAndPresentIfRequired(
+                    from: topVC
+                )
+
+                completion(ConsentInformation.shared.canRequestAds)
+
+            } catch {
+                #if DEBUG
+                print("UMP consent error: \(error.localizedDescription)")
+                #endif
+
+                completion(false)
             }
         }
     }
     
     private func topMostViewController() -> UIViewController? {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return nil }
-        var topController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController
-        while let presented = topController?.presentedViewController {
-            topController = presented
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return nil
         }
-        return topController
+        
+        guard let rootViewController = windowScene.windows
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else {
+            return nil
+        }
+        
+        return findTopViewController(from: rootViewController)
     }
-    
-    // MARK: - App OpenAd
-    public func presentAppOpenAdIfAvailable() {
-        AppOpenAdManager.shared.tryToPresentAd()
+
+    private func findTopViewController(
+        from viewController: UIViewController
+    ) -> UIViewController {
+        
+        if let presentedViewController = viewController.presentedViewController {
+            return findTopViewController(from: presentedViewController)
+        }
+        
+        if let navigationController = viewController as? UINavigationController,
+           let visibleViewController = navigationController.visibleViewController {
+            return findTopViewController(from: visibleViewController)
+        }
+        
+        if let tabBarController = viewController as? UITabBarController,
+           let selectedViewController = tabBarController.selectedViewController {
+            return findTopViewController(from: selectedViewController)
+        }
+        
+        if let splitViewController = viewController as? UISplitViewController,
+           let lastViewController = splitViewController.viewControllers.last {
+            return findTopViewController(from: lastViewController)
+        }
+        
+        return viewController
     }
     
     // MARK: - Interstitial Ad

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24765" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="DR1-h4-nlz">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24765" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="hak-8S-at6">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -9,10 +9,48 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Splash View Controller-->
+        <scene sceneID="qZu-7e-nGg">
+            <objects>
+                <viewController storyboardIdentifier="SplashViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="hak-8S-at6" customClass="SplashViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="H2j-6j-WkO">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="App is done loading in: 5 seconds." textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xnK-Ti-vgS">
+                                <rect key="frame" x="66" y="415.66666666666669" width="261" height="21"/>
+                                <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="AppOpenExample" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="Qqv-1u-Wti">
+                                <rect key="frame" x="45.333333333333371" y="256.66666666666674" width="302.33333333333326" height="42.999999999997556"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="fhh-Jt-HZs"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="xnK-Ti-vgS" firstAttribute="centerX" secondItem="H2j-6j-WkO" secondAttribute="centerX" id="B6c-FH-CaG"/>
+                            <constraint firstItem="Qqv-1u-Wti" firstAttribute="centerY" secondItem="H2j-6j-WkO" secondAttribute="centerY" constant="-147.83333333333451" id="Dwy-RD-m9w"/>
+                            <constraint firstItem="Qqv-1u-Wti" firstAttribute="centerX" secondItem="H2j-6j-WkO" secondAttribute="centerX" id="agh-Nj-Z2h"/>
+                            <constraint firstItem="xnK-Ti-vgS" firstAttribute="centerY" secondItem="H2j-6j-WkO" secondAttribute="centerY" id="nT6-CH-5Qt"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="splashScreenLabel" destination="xnK-Ti-vgS" id="OPq-Wc-fBq"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="GPw-vf-dhN" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-444" y="105"/>
+        </scene>
         <!--Navigation Controller-->
         <scene sceneID="RrW-Kx-y2D">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="DR1-h4-nlz" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="NavigationController" automaticallyAdjustsScrollViewInsets="NO" id="DR1-h4-nlz" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="Z8A-in-Px6">
                         <rect key="frame" x="0.0" y="118" width="393" height="54"/>
@@ -27,10 +65,10 @@
             </objects>
             <point key="canvasLocation" x="257" y="105"/>
         </scene>
-        <!--View Controller-->
+        <!--Main View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="MainViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="BYZ-38-t0r" customClass="MainViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

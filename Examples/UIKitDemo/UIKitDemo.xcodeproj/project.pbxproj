@@ -16,8 +16,9 @@
 		0F8F48492ECD888400D658FC /* NativeAdVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483D2ECD888400D658FC /* NativeAdVC.swift */; };
 		0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483E2ECD888400D658FC /* SceneDelegate.swift */; };
 		0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */; };
-		0F8F484C2ECD888400D658FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48402ECD888400D658FC /* ViewController.swift */; };
+		0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48402ECD888400D658FC /* MainViewController.swift */; };
 		0F8F484E2ECD8AF100D658FC /* FullNativeAdVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */; };
+		D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3843190302A3DD40011AE29 /* SplashViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,9 +31,10 @@
 		0F8F483B2ECD888400D658FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		0F8F483D2ECD888400D658FC /* NativeAdVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdVC.swift; sourceTree = "<group>"; };
 		0F8F483E2ECD888400D658FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		0F8F48402ECD888400D658FC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		0F8F48402ECD888400D658FC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		0F8F48422ECD888400D658FC /* UIKitDemo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = UIKitDemo.xcdatamodel; sourceTree = "<group>"; };
 		0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullNativeAdVC.swift; sourceTree = "<group>"; };
+		D3843190302A3DD40011AE29 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,7 +74,8 @@
 				0F8F48382ECD888400D658FC /* Info.plist */,
 				0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */,
 				0F8F483C2ECD888400D658FC /* Main.storyboard */,
-				0F8F48402ECD888400D658FC /* ViewController.swift */,
+				D3843190302A3DD40011AE29 /* SplashViewController.swift */,
+				0F8F48402ECD888400D658FC /* MainViewController.swift */,
 				0F8F48372ECD888400D658FC /* BannerAdVC.swift */,
 				0F8F483D2ECD888400D658FC /* NativeAdVC.swift */,
 				0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */,
@@ -165,7 +168,8 @@
 				0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */,
 				0F8F484E2ECD8AF100D658FC /* FullNativeAdVC.swift in Sources */,
 				0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */,
-				0F8F484C2ECD888400D658FC /* ViewController.swift in Sources */,
+				0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */,
+				D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

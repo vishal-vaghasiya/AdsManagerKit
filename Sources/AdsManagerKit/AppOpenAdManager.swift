@@ -2,25 +2,35 @@
 import UserMessagingPlatform
 import UIKit
 
+// MARK: - AppOpenAdManagerDelegate
+@MainActor
+public protocol AppOpenAdManagerDelegate: AnyObject {
+    func appOpenAdManagerDidComplete(_ manager: AppOpenAdManager)
+}
+
 // MARK: - AppOpenAdManager
 @MainActor
 // [START app_open_ad_manager]
 public final class AppOpenAdManager: NSObject {
     // The app open ad.
     private var appOpenAd: AppOpenAd?
-    /// Maintains a reference to the delegate.
-    private var appOpenAdManagerAdDidComplete: (@Sendable () -> Void)?
-    private var didFirstLoadFail = false
+    
+    /// Delegate for App Open Ad events.
+    public weak var delegate: AppOpenAdManagerDelegate?
     
     /// Keeps track of if an app open ad is loading.
     private var isLoadingAd = false
+    
     /// Keeps track of if an app open ad is showing.
     private var isShowingAd = false
+    
     /// Keeps track of the time when an app open ad was loaded to discard expired ad.
     private var adLoadTime: Date?
+    
     private let adValidityDuration: TimeInterval = 4 * 3_600
     
     public static let shared = AppOpenAdManager()
+    
     // MARK: - Private Methods
     
     private func wasLoadTimeLessThanNHoursAgo(timeoutInterval: TimeInterval) -> Bool {
@@ -31,57 +41,63 @@ public final class AppOpenAdManager: NSObject {
     }
     
     private func isAdAvailable() -> Bool {
-        return appOpenAd != nil && wasLoadTimeLessThanNHoursAgo(timeoutInterval: adValidityDuration)
+        return appOpenAd != nil &&
+        wasLoadTimeLessThanNHoursAgo(timeoutInterval: adValidityDuration)
     }
     
-    private func createAdRequest() -> Request {
+    private func createAdRequest() -> AdManagerRequest {
         // Latest UMP SDK automatically handles ATT/GDPR
-        return Request()
+        return AdManagerRequest()
     }
     
-    func loadOpenAd() {
-        guard ConsentInformation.shared.canRequestAds else {
-            #if DEBUG
-            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping preload.")
-            #endif
-            return
-        }
+    public func loadOpenAd() async {
+        // Do not load ad if there is an unused ad or one is already loading.
         if isLoadingAd || isAdAvailable() {
             return
         }
-        if AdsConfig.openAdEnabled {
-            isLoadingAd = true
-            AppOpenAd.load(with: AdsConfig.openAdUnitId, request: createAdRequest()) { [weak self] ad, error in
-                Task { @MainActor in
-                    guard let self else { return }
-                    if let error = error {
-                        self.isLoadingAd = false
-                        self.appOpenAd = nil
-                        self.adLoadTime = nil
-                        #if DEBUG
-                        print("[AppOpenAd] Failed to load: \(error)")
-                        #endif
-                        return
-                    }
-                    self.appOpenAd = ad
-                    self.appOpenAd?.fullScreenContentDelegate = self
-                    self.adLoadTime = Date()
-                    self.isLoadingAd = false
-                    #if DEBUG
-                    print("[AppOpenAd] loaded.")
-                    #endif
-                }
-            }
+
+        guard AdsConfig.openAdEnabled else {
+            return
         }
-    }
-    
-    func tryToPresentAd() {
+
         guard ConsentInformation.shared.canRequestAds else {
             #if DEBUG
-            print("[AppOpenAd] ⛔️ Consent not granted (canRequestAds = false). Skipping show.")
+            print(
+                "[AppOpenAd] ⛔️ Consent not granted. " +
+                "Skipping load."
+            )
             #endif
             return
         }
+        
+        isLoadingAd = true
+
+        do {
+            appOpenAd = try await AppOpenAd.load(
+                with: AdsConfig.openAdUnitId,
+                request: createAdRequest()
+            )
+
+            appOpenAd?.fullScreenContentDelegate = self
+            adLoadTime = Date()
+
+            #if DEBUG
+            print("[AppOpenAd] loaded.")
+            #endif
+
+        } catch {
+            appOpenAd = nil
+            adLoadTime = nil
+
+            #if DEBUG
+            print("[AppOpenAd] Failed to load: \(error.localizedDescription)")
+            #endif
+        }
+
+        isLoadingAd = false
+    }
+    
+    public func tryToPresentAd() {
         // If the app open ad is already showing, do not show the ad again.
         if isShowingAd {
             #if DEBUG
@@ -90,51 +106,109 @@ public final class AppOpenAdManager: NSObject {
             return
         }
         
+        // If the app open ad is not available yet but is supposed to show, load
+        // a new ad.
         if !isAdAvailable() {
             #if DEBUG
             print("[AppOpenAd] is not ready yet.")
             #endif
-            loadOpenAd()
+            
+            // The app open ad is considered to be complete in this example.
+            delegate?.appOpenAdManagerDidComplete(self)
+            
+            // [START_EXCLUDE silent]
+            Task {
+                await loadOpenAd()
+            }
+            
+            // [END_EXCLUDE]
             return
         }
         
-        if let ad = appOpenAd {
+        if let appOpenAd {
+            // Remove the ad reference before presenting
+            // so the same ad cannot be presented twice.
+            
             #if DEBUG
             print("[AppOpenAd] will be displayed.")
             #endif
+            
+            appOpenAd.present(from: nil)
             isShowingAd = true
-            ad.present(from: nil)
         }
+    }
+    
+    public func tryToPresentSplashAd() {
+        guard AdsConfig.openAdEnabled,
+              AdsConfig.openAdOnSplashEnabled else {
+            // The app open ad is considered to be complete in this example.
+            delegate?.appOpenAdManagerDidComplete(self)
+            return
+        }
+        tryToPresentAd()
     }
 }
 
 // MARK: - FullScreenContentDelegate
 
 extension AppOpenAdManager: FullScreenContentDelegate {
-    
-    public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+    // [START ad_events]
+    public func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         #if DEBUG
-        print("[AppOpenAd] Dismissed")
+        print("[AppOpenAd] recorded an impression")
         #endif
-        appOpenAd = nil
-        isShowingAd = false
-        appOpenAdManagerAdDidComplete?()
-        loadOpenAd()
     }
-    
-    public func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+
+    public func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         #if DEBUG
-        print("[AppOpenAd] Failed to present: \(error.localizedDescription)")
+        print("[AppOpenAd] recorded a click")
         #endif
-        appOpenAd = nil
-        isShowingAd = false
-        appOpenAdManagerAdDidComplete?()
-        loadOpenAd()
+    }
+
+    public func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        #if DEBUG
+        print("[AppOpenAd] will be dismissed")
+        #endif
     }
     
     public func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] Will present")
         #endif
+    }
+    
+    public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        #if DEBUG
+        print("[AppOpenAd] dismissed")
+        #endif
+        
+        appOpenAd = nil
+        isShowingAd = false
+        
+        delegate?.appOpenAdManagerDidComplete(self)
+        
+        // Preload the next App Open Ad.
+        Task {
+            await loadOpenAd()
+        }
+    }
+    
+    public func ad(
+        _ ad: FullScreenPresentingAd,
+        didFailToPresentFullScreenContentWithError error: Error
+    ) {
+        #if DEBUG
+        print("[AppOpenAd] Failed to present: \(error.localizedDescription)")
+        #endif
+        
+        appOpenAd = nil
+        isShowingAd = false
+        
+        delegate?.appOpenAdManagerDidComplete(self)
+        
+        // Preload the next App Open Ad.
+        Task {
+            await loadOpenAd()
+        }
     }
 }

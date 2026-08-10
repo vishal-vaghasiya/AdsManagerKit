@@ -27,6 +27,11 @@ public struct AdsConfig {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
+    
+    static var openAdOnSplashEnabled: Bool {
+        get { adEnabled(#function) }
+        set { UserDefaults.standard.set(newValue, forKey: #function) }
+    }
 
     static var bannerAdEnabled: Bool {
         get { adEnabled(#function) }

@@ -6,24 +6,11 @@
 import UIKit
 import AdsManager
 import GoogleMobileAds
-class ViewController: UIViewController {
+class MainViewController: UIViewController {
     var loadedAds: [NativeAd] = []
     override func viewDidLoad() {
         super.viewDidLoad()
-        AdsManager.configureAds(isProduction: false,
-                                openAdEnabled: true,
-                                bannerAdEnabled: true,
-                                interstitialAdEnabled: true,
-                                nativeAdEnabled: true,
-                                interstitialAdShowCount: 4,
-                                maxInterstitialAdsPerSession: 5,
-                                bannerAdErrorCount: 7,
-                                interstitialAdErrorCount: 7,
-                                nativeAdErrorCount: 7)
         
-        AdsManager.configure {
-            
-        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -35,7 +22,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func openAdButtonClick(_ sender: UIButton) {
-        AdsManager.shared.presentAppOpenAdIfAvailable()
+        
     }
     
     @IBAction func bannerAdButtonClick(_ sender: UIButton) {
@@ -57,7 +44,7 @@ class ViewController: UIViewController {
     }
 }
 
-extension ViewController: NativeAdLoaderOutput {
+extension MainViewController: NativeAdLoaderOutput {
     func nativeAdLoader(_ loader: NativeAdLoader, didLoad ad: NativeAd) {
         print("didLoad")
     }
