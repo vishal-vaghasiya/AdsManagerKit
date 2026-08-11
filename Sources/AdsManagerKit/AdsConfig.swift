@@ -42,6 +42,11 @@ public struct AdsConfig {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
+    
+    static var showLoadingIndicator: Bool {
+        get { adEnabled(#function) }
+        set { UserDefaults.standard.set(newValue, forKey: #function) }
+    }
 
     static var nativeAdEnabled: Bool {
         get { adEnabled(#function) }

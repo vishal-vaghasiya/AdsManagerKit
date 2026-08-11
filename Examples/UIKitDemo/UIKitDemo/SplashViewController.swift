@@ -17,12 +17,18 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
     
     // MARK: - UI SETUP
     private func setupSplash() {
-        AdsManager.configureAds(isProduction: false,
+        #if DEBUG
+        let isProduction = false
+        #else
+        let isProduction = true
+        #endif
+        
+        AdsManager.configureAds(isProduction: isProduction,
                                 openAdEnabled: true,
                                 openAdOnSplashEnabled: false,
                                 bannerAdEnabled: true,
                                 interstitialAdEnabled: true,
-                                showInterstitialLoadingIndicator: true,
+                                showLoadingIndicator: false,
                                 nativeAdEnabled: true,
                                 interstitialAdShowCount: 4,
                                 maxInterstitialAdsPerSession: 5,

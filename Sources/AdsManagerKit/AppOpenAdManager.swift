@@ -45,9 +45,9 @@ public final class AppOpenAdManager: NSObject {
         wasLoadTimeLessThanNHoursAgo(timeoutInterval: adValidityDuration)
     }
     
-    private func createAdRequest() -> AdManagerRequest {
+    private func createAdRequest() -> Request/*AdManagerRequest*/ {
         // Latest UMP SDK automatically handles ATT/GDPR
-        return AdManagerRequest()
+        return Request()//)AdManagerRequest()
     }
     
     public func loadOpenAd() async {

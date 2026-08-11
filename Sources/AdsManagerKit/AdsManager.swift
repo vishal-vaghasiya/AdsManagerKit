@@ -5,6 +5,13 @@ import GoogleMobileAds
 import UserMessagingPlatform
 @MainActor
 public final class AdsManager: NSObject {
+    
+    public static let shared = AdsManager()
+    private var isMobileAdsStartCalled = false
+    public var isAdsStarted: Bool {
+        return isMobileAdsStartCalled
+    }
+    
     /// Configure all ad settings at once
     /// - Parameters:
     ///   - isProduction: True for production AdMob IDs, false for test IDs
@@ -13,7 +20,7 @@ public final class AdsManager: NSObject {
     ///     This does not affect App Open Ads shown when the app returns from the background.
     ///   - bannerAdEnabled: Enable Banner Ads
     ///   - interstitialAdEnabled: Enable Interstitial Ads
-    ///   - showInterstitialLoadingIndicator: Shows a loading indicator while preparing an Interstitial Ad for presentation.
+    ///   - showLoadingIndicator: Shows a loading indicator while preparing an Interstitial Ad for presentation.
     ///   - nativeAdEnabled: Enable Native Ads
     ///   - openAdUnitId: Optional App Open Ad Unit ID (default uses placeholder/test ID)
     ///   - bannerAdUnitId: Optional Banner Ad Unit ID (default uses placeholder/test ID)
@@ -30,14 +37,14 @@ public final class AdsManager: NSObject {
         openAdOnSplashEnabled: Bool,
         bannerAdEnabled: Bool,
         interstitialAdEnabled: Bool,
-        showInterstitialLoadingIndicator: Bool,
+        showLoadingIndicator: Bool,
         nativeAdEnabled: Bool,
         openAdUnitId: String? = nil,
         bannerAdUnitId: String? = nil,
         interstitialAdUnitId: String? = nil,
         nativeAdUnitId: String? = nil,
         interstitialAdShowCount: Int = 4,
-        maxInterstitialAdsPerSession: Int = 4,
+        maxInterstitialAdsPerSession: Int = 10,
         bannerAdErrorCount: Int = 5,
         interstitialAdErrorCount: Int = 5,
         nativeAdErrorCount: Int = 5
@@ -49,6 +56,7 @@ public final class AdsManager: NSObject {
         AdsConfig.openAdOnSplashEnabled = openAdOnSplashEnabled
         AdsConfig.bannerAdEnabled = bannerAdEnabled
         AdsConfig.interstitialAdEnabled = interstitialAdEnabled
+        AdsConfig.showLoadingIndicator = showLoadingIndicator
         AdsConfig.nativeAdEnabled = nativeAdEnabled
         
         AdsConfig.openAdUnitId = openAdUnitId ?? "ca-app-pub-3940256099942544/5575463023"
@@ -67,79 +75,50 @@ public final class AdsManager: NSObject {
     public static func configure(completion: (() -> Void)? = nil) {
         // Gather / update consent.
         AdsManager.shared.requestUMPConsent { canRequestAds in
-            Task { @MainActor in
-                if canRequestAds {
-                    await AdsManager.startAdsFlow()
-                }
-                
-                completion?()
+            if canRequestAds {
+                AdsManager.startAdsFlow()
             }
+            completion?()
         }
         
         // Start ads immediately if valid consent was already obtained
         // in a previous session.
         if AdsManager.shared.canRequestAds {
-            Task { @MainActor in
-                await AdsManager.startAdsFlow()
-            }
+            AdsManager.startAdsFlow()
         }
     }
     
-    private static func startAdsFlow() async {
+    private static func startAdsFlow() {
         let manager = AdsManager.shared
-
+        
         // Prevent Google Mobile Ads SDK from being initialized more than once.
         guard !manager.isMobileAdsStartCalled else {
             return
         }
-
+        
         manager.isMobileAdsStartCalled = true
-
+        
         // Initialize Google Mobile Ads SDK once.
-        await withCheckedContinuation { continuation in
-            MobileAds.shared.start { _ in
-                continuation.resume()
-            }
-        }
-
+        MobileAds.shared.start()
+        
         // Preload App Open Ad.
         if AdsConfig.openAdEnabled && AdsConfig.openAdOnSplashEnabled {
-            await AppOpenAdManager.shared.loadOpenAd()
+            Task {
+                await AppOpenAdManager.shared.loadOpenAd()
+            }
         }
-
+        
         // Preload Interstitial Ad.
         if AdsConfig.interstitialAdEnabled {
-            manager.loadInterstitial()
+            Task {
+                await InterstitialAdManager.shared.loadAd()
+            }
         }
     }
     
     public static func setToPremium(_ isPremium: Bool) {
         // Save premium state
         AdsConfig.isPremiumUser = isPremium
-    }
-    
-    public static let shared = AdsManager()
-    private var isMobileAdsStartCalled = false
-    public var isAdsStarted: Bool {
-        return isMobileAdsStartCalled
-    }
-    
-    // Call this before setupAds
-    public func requestATTAuthorization(completion: @Sendable @escaping (Bool) -> Void) {
-        ATTrackingManager.requestTrackingAuthorization { status in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized:
-                    completion(true)
-                case .denied:
-                    completion(false)
-                case .restricted, .notDetermined:
-                    completion(false)
-                @unknown default:
-                    completion(false)
-                }
-            }
-        }
     }
     
     public var canRequestAds: Bool {
@@ -172,8 +151,8 @@ public final class AdsManager: NSObject {
                 #if DEBUG
                 print("UMP consent error: \(error.localizedDescription)")
                 #endif
-
-                completion(false)
+                
+                completion(ConsentInformation.shared.canRequestAds)
             }
         }
     }
@@ -221,10 +200,12 @@ public final class AdsManager: NSObject {
     }
     
     // MARK: - Interstitial Ad
-    private func loadInterstitial() {
-        InterstitialAdManager.shared.loadAd()
+    public func loadInterstitial() {
+        Task { @MainActor in
+            await InterstitialAdManager.shared.loadAd()
+        }
     }
-    
+
     public func showInterstitialIfAvailable() {
         InterstitialAdManager.shared.showAd()
     }

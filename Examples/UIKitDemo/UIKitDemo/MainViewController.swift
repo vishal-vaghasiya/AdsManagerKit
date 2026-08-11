@@ -22,11 +22,12 @@ class MainViewController: UIViewController {
     }
     
     @IBAction func openAdButtonClick(_ sender: UIButton) {
-        
+        AppOpenAdManager.shared.tryToPresentAd()
     }
     
     @IBAction func bannerAdButtonClick(_ sender: UIButton) {
         AdsManager.shared.showInterstitialIfAvailable()
+        
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "BannerAdVC") as! BannerAdVC
         self.navigationController?.pushViewController(vc, animated: true)
@@ -38,6 +39,7 @@ class MainViewController: UIViewController {
     
     @IBAction func nativeAdButtonClick(_ sender: UIButton) {
         AdsManager.shared.showInterstitialIfAvailable()
+        
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "NativeAdVC") as! NativeAdVC
         self.navigationController?.pushViewController(vc, animated: true)
