@@ -1,32 +1,26 @@
-//
-//  FullNativeAdVC.swift
-//  UIKitDemo
-//
-//  Created by VISHAL VAGHASIYA on 19/11/25.
-//
-
 import UIKit
 import AdsManager
 
 class FullNativeAdVC: UIViewController {
 
+    @IBOutlet weak var brnClose: UIButton!
     @IBOutlet weak var nativeAdView: UIView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
         // Do any additional setup after loading the view.
-        //AdsManager.shared.loadNative(in: nativeAdView, rootViewController: self, adType: .LARGE)
+        AdsManager.shared.loadNative(in: nativeAdView, rootViewController: self, adType: .LARGE)
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
+            self.brnClose.isHidden = false
+        })
     }
-    */
+    
+    @IBAction func closeButtonClick(_ sender: UIButton) {
+        self.dismiss(animated: false)
+    }
 
 }

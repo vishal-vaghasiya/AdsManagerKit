@@ -1,10 +1,3 @@
-//
-//  BannerAdVC.swift
-//  UIKitDemo
-//
-//  Created by VISHAL VAGHASIYA on 19/11/25.
-//
-
 import UIKit
 import AdsManager
 

@@ -1,8 +1,3 @@
-//
-//  ViewController.swift
-//  UIKitDemo
-//
-
 import UIKit
 import AdsManager
 import GoogleMobileAds

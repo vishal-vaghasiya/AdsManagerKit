@@ -1,8 +1,3 @@
-//
-//  AppDelegate.swift
-//  UIKitDemo
-//
-
 import UIKit
 import CoreData
 

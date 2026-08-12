@@ -1,8 +1,3 @@
-//
-//  SceneDelegate.swift
-//  UIKitDemo
-//
-
 import UIKit
 import AdsManager
 

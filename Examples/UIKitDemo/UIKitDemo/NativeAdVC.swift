@@ -1,10 +1,3 @@
-//
-//  NativeAdVC.swift
-//  UIKitDemo
-//
-//  Created by VISHAL VAGHASIYA on 19/11/25.
-//
-
 import UIKit
 import AdsManager
 
@@ -12,15 +5,22 @@ class NativeAdVC: UIViewController {
     
     @IBOutlet weak var smallNativeAdView: UIView!
     @IBOutlet weak var mediumNativeAdView: UIView!
-    @IBOutlet weak var largeNativeAdView: UIView!
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        //AdsManager.shared.loadNative(in: smallNativeAdView, rootViewController: self, adType: .SMALL)
-        //AdsManager.shared.loadNative(in: mediumNativeAdView, rootViewController: self, adType: .MEDIUM)
-        //AdsManager.shared.loadNative(in: largeNativeAdView, rootViewController: self, adType: .LARGE)
+
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        AdsManager.shared.loadNative(in: smallNativeAdView, rootViewController: self, adType: .SMALL)
+        AdsManager.shared.loadNative(in: mediumNativeAdView, rootViewController: self, adType: .MEDIUM)
+    }
+    
+    @IBAction func fullScreenNativeClick(_ sender: UIButton) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "FullNativeAdVC") as! FullNativeAdVC
+        vc.modalPresentationStyle = .overFullScreen
+        self.present(vc, animated: false)
+    }
     
     /*
      // MARK: - Navigation

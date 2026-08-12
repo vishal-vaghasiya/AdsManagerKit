@@ -65,8 +65,20 @@ final class NativeAdManager: NSObject {
     
     // MARK: - Get Ad (Always Load On Demand)
     func getAd(in containerView: UIView, viewController: UIViewController, adType: AdType, completion: @escaping (Bool, CGFloat) -> Void) {
+        // Show shimmer while native ad is loading
+        let shimmerView = AdShimmerView()
+        shimmerView.show(in: containerView, height: adType.height)
+        
         loadAd(rootViewController: viewController) { [weak self] ad in
-            guard let self else { return }
+            guard let self else {
+                shimmerView.remove()
+                completion(false, 0)
+                return
+            }
+            
+            // Remove shimmer after ad loading finishes
+            shimmerView.remove()
+            
             if let ad {
                 self.displayNativeAd(in: containerView, ad, adType: adType)
                 completion(true, adType.height)

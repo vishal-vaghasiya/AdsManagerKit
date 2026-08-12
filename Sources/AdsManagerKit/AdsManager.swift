@@ -222,15 +222,6 @@ public final class AdsManager: NSObject {
     public func loadNative(in containerView: UIView,
                            rootViewController: UIViewController,
                            adType: AdType = .SMALL,
-                           completion: ((Bool) -> Void)? = nil) {
-        NativeAdManager.shared.getAd(in: containerView, viewController: rootViewController, adType: adType) { isLoaded, _ in
-            completion?(isLoaded)
-        }
-    }
-
-    public func loadNative(in containerView: UIView,
-                           rootViewController: UIViewController,
-                           adType: AdType = .SMALL,
                            stateChanged: ((Bool, CGFloat) -> Void)? = nil) {
         NativeAdManager.shared.getAd(in: containerView, viewController: rootViewController, adType: adType, completion: stateChanged ?? { _, _ in })
     }
