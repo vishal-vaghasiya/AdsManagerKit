@@ -1,10 +1,11 @@
 import GoogleMobileAds
 import SwiftUI
 import UIKit
+
 public enum BannerAdType: String, CaseIterable, Hashable, Sendable {
-    case ADAPTIVE
-    case REGULAR
-    case LARGE
+    case regular
+    case large
+    case largeAdaptive
 }
 
 @MainActor
@@ -14,61 +15,14 @@ final class BannerAdManager: NSObject {
     
     private var bannerView: BannerView?
     private var completionHandler: ((Bool, CGFloat) -> Void)?
-    private var bannerHeight = CGFloat(0)
+    private(set) var bannerHeight: CGFloat = 0
     
     private var lastBannerAdErrorTime: Date?
     private let bannerAdRetryCooldown: TimeInterval = 60
-    
-    private var refreshTimer: Timer?
-    private let bannerRefreshInterval: TimeInterval = 90 // seconds (optimized for adaptive banners & eCPM)
-
-    private var isRefreshPausedByBackground: Bool = false
-
-    private var lastBannerType: BannerAdType = .ADAPTIVE
-
-    override init() {
-        super.init()
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appDidEnterBackground),
-            name: UIApplication.didEnterBackgroundNotification,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appWillEnterForeground),
-            name: UIApplication.willEnterForegroundNotification,
-            object: nil
-        )
-    }
-    
-    deinit {
-        stopBannerRefresh()
-        NotificationCenter.default.removeObserver(self)
-    }
-
-    @objc private func appDidEnterBackground() {
-        if refreshTimer != nil {
-            isRefreshPausedByBackground = true
-            stopBannerRefresh()
-        }
-    }
-
-    @objc private func appWillEnterForeground() {
-        guard isRefreshPausedByBackground,
-              let bannerView = bannerView,
-              let container = bannerView.superview,
-              let vc = bannerView.rootViewController
-        else { return }
-
-        isRefreshPausedByBackground = false
-        startBannerRefresh(in: container, vc: vc, type: lastBannerType)
-    }
 
     public func resetErrorCounter() {
         AdsConfig.currentBannerAdErrorCount = 0
         lastBannerAdErrorTime = nil
-        // keep refresh running on success
     }
     
     private func incrementErrorCounter() {
@@ -88,38 +42,9 @@ final class BannerAdManager: NSObject {
         let canRetry = Date().timeIntervalSince(lastErrorTime) >= bannerAdRetryCooldown
         if canRetry {
             resetErrorCounter()
-            // retry allowed, refresh will resume on next load
         }
 
         return !canRetry
-    }
-    
-    private func startBannerRefresh(
-        in containerView: UIView,
-        vc: UIViewController,
-        type: BannerAdType
-    ) {
-        stopBannerRefresh()
-
-        let localType = type
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: bannerRefreshInterval, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            DispatchQueue.main.async {
-                self.loadBannerAd(
-                    in: containerView,
-                    vc: vc,
-                    type: localType
-                ) { _, _ in }
-            }
-        }
-    }
-
-    nonisolated private func stopBannerRefresh() {
-        Task { @MainActor in
-            self.refreshTimer?.invalidate()
-            self.refreshTimer = nil
-        }
     }
     
     func loadBannerAd(in containerView: UIView,
@@ -139,31 +64,36 @@ final class BannerAdManager: NSObject {
             return
         }
 
-        self.lastBannerType = type
+        self.completionHandler = completion
 
-        let viewWidth = containerView.bounds.width > 0
-            ? containerView.bounds.width
-            : UIScreen.main.bounds.width
+        containerView.layoutIfNeeded()
+        
+        let viewWidth = containerView.bounds.width
 
-        var adSize: AdSize
-
-        switch type {
-
-        case .ADAPTIVE:
-            adSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
-            bannerHeight = adSize.size.height
-
-        case .REGULAR:
-            adSize = AdSizeBanner
-            bannerHeight = 50
-
-        case .LARGE:
-            adSize = AdSizeLargeBanner
-            bannerHeight = 100
+        guard viewWidth > 0 else {
+            completionHandler = nil
+            completion(false, 0)
+            return
         }
-
+        
+        let adSize: AdSize
+        
+        switch type {
+        case .regular:
+            adSize = AdSizeBanner
+            
+        case .large:
+            adSize = AdSizeLargeBanner
+            
+        case .largeAdaptive:
+            adSize = largeAnchoredAdaptiveBanner(width: viewWidth)
+        }
+        
+        bannerHeight = adSize.size.height
+        removeCurrentBanner()
         let banner = BannerView(adSize: adSize)
         bannerView = banner
+        
         banner.adUnitID = AdsConfig.bannerAdUnitId
         banner.rootViewController = vc
         banner.delegate = self
@@ -177,18 +107,21 @@ final class BannerAdManager: NSObject {
             banner.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)
         ])
 
-        // Use consent-aware request
-        let request = createAdRequest()
-        banner.load(request)
-        self.completionHandler = completion
-    }
-
-    private func createAdRequest() -> Request {
-        return Request() // Latest UMP SDK automatically handles ATT/GDPR
+        banner.load(Request())
     }
     
-    /// SwiftUI-friendly banner container
-    public func makeBannerContainer(adType: BannerAdType = .REGULAR,
+    private func removeCurrentBanner() {
+        guard let banner = bannerView else {
+            return
+        }
+
+        banner.delegate = nil
+        banner.removeFromSuperview()
+        bannerView = nil
+    }
+
+    // MARK: - SwiftUI Banner Container
+    public func makeBannerContainer(adType: BannerAdType,
                                     onAdLoaded: ((CGFloat) -> Void)? = nil,
                                     onAdStateChanged: ((Bool, CGFloat) -> Void)? = nil) -> UIView {
         let containerView = UIView()
@@ -202,30 +135,17 @@ final class BannerAdManager: NSObject {
                 return containerView
             }
         
-        // Call existing loadBannerAd, but forward a SwiftUI callback separately
+        // Load the banner and forward its state to SwiftUI.
         loadBannerAd(in: containerView, vc: rootVC, type: adType) { success, height in
-            DispatchQueue.main.async {
-                let resolvedHeight = success ? height : 0
-                containerView.frame.size.height = resolvedHeight
-                onAdStateChanged?(success, resolvedHeight)
-                if success {
-                    onAdLoaded?(resolvedHeight)
-                }
+            let resolvedHeight = success ? height : 0
+            onAdStateChanged?(success, resolvedHeight)
+            if success {
+                onAdLoaded?(resolvedHeight)
             }
         }
         
         return containerView
     }
-    
-    public func stop() {
-        stopBannerRefresh()
-        if let banner = bannerView {
-            banner.removeFromSuperview()
-            banner.delegate = nil
-            bannerView = nil
-        }
-    }
-    
 }
 
 extension BannerAdManager: BannerViewDelegate {
@@ -233,8 +153,9 @@ extension BannerAdManager: BannerViewDelegate {
         #if DEBUG
         print("[BannerAd] loaded.")
         #endif
-        self.resetErrorCounter()
-        startBannerRefresh(in: bannerView.superview!, vc: bannerView.rootViewController!, type: lastBannerType)
+
+        resetErrorCounter()
+
         completionHandler?(true, bannerHeight)
         completionHandler = nil
     }
@@ -243,8 +164,9 @@ extension BannerAdManager: BannerViewDelegate {
         #if DEBUG
         print("[BannerAd] Failed to load: \(error.localizedDescription)")
         #endif
-        self.incrementErrorCounter()
-        stopBannerRefresh()
+        
+        incrementErrorCounter()
+        
         completionHandler?(false, 0)
         completionHandler = nil
     }
@@ -252,12 +174,12 @@ extension BannerAdManager: BannerViewDelegate {
 
 // MARK: - SwiftUI Banner Wrapper
 public struct BannerAdView: UIViewRepresentable {
-    public var adType: BannerAdType = .REGULAR
+    public var adType: BannerAdType
     public var onAdLoaded: ((CGFloat) -> Void)? = nil
     @Binding private var isLoaded: Bool
     @Binding private var height: CGFloat
 
-    public init(adType: BannerAdType = .REGULAR,
+    public init(adType: BannerAdType,
                 isLoaded: Binding<Bool> = .constant(false),
                 height: Binding<CGFloat> = .constant(0),
                 onAdLoaded: ((CGFloat) -> Void)? = nil) {
@@ -272,8 +194,10 @@ public struct BannerAdView: UIViewRepresentable {
             adType: adType,
             onAdLoaded: onAdLoaded,
             onAdStateChanged: { loaded, resolvedHeight in
-                isLoaded = loaded
-                height = resolvedHeight
+                DispatchQueue.main.async {
+                    isLoaded = loaded
+                    height = resolvedHeight
+                }
             }
         )
     }

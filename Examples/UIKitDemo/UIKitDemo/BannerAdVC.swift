@@ -13,17 +13,22 @@ class BannerAdVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        /*AdsManager.shared.loadBanner(in: regularBannerView, rootViewController: self, type: .REGULAR) { _, height in
-            print(height)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        /*AdsManager.shared.loadBanner(in: regularBannerView, rootViewController: self, type: .regular) { isLoaded, height in
+            print("regular: \(isLoaded) - \(height)")
         }*/
         
-        /*AdsManager.shared.loadBanner(in: largeBannerView, rootViewController: self, type: .LARGE) { _, height in
+        /*AdsManager.shared.loadBanner(in: largeBannerView, rootViewController: self, type: .large) { isLoaded, height in
             self.conLargeBannerHeight.constant = height
+            print("largeAdaptive: \(isLoaded) - \(height)")
         }*/
         
-        /*AdsManager.shared.loadBanner(in: adaptiveBannerView, rootViewController: self, type: .ADAPTIVE) { _, height in
+        AdsManager.shared.loadBanner(in: adaptiveBannerView, rootViewController: self, type: .largeAdaptive) { isLoaded, height in
             self.conAdaptiveBannerHeight.constant = height
-        }*/
+        }
     }
     
 
