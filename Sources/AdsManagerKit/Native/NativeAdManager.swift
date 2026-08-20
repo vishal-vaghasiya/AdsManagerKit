@@ -280,13 +280,17 @@ public struct NativeAdContainerView: UIViewRepresentable {
     }
     
     public func makeUIView(context: Context) -> UIView {
+        
         let containerView = UIView()
         containerView.clipsToBounds = true
         containerView.frame.size.height = height
         
         guard let rootVC = UIApplication.shared.adsManagerRootViewController else {
-            isLoaded = false
-            resolvedHeight = 0
+            DispatchQueue.main.async {
+                isLoaded = false
+                resolvedHeight = 0
+            }
+            
             return containerView
         }
         
@@ -296,18 +300,19 @@ public struct NativeAdContainerView: UIViewRepresentable {
             adView: adView,
             height: height
         ) { loaded, resolvedAdHeight in
-            isLoaded = loaded
-            resolvedHeight = resolvedAdHeight
-            containerView.frame.size.height = resolvedAdHeight
+            
+            DispatchQueue.main.async {
+                isLoaded = loaded
+                resolvedHeight = resolvedAdHeight
+                containerView.frame.size.height = resolvedAdHeight
+            }
         }
         
         return containerView
     }
     
-    public func updateUIView(
-        _ uiView: UIView,
-        context: Context
-    ) {
+    public func updateUIView(_ uiView: UIView, context: Context) {
+        uiView.frame.size.height = height
     }
 }
 

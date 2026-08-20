@@ -125,7 +125,6 @@ public final class AdsManager: NSObject {
                 }
             }
         }
-        
     }
     
     public static func setToPremium(_ isPremium: Bool) {

@@ -33,7 +33,7 @@ public struct AdsConfig {
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var bannerAdEnabled: Bool {
+    public static var bannerAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
@@ -43,7 +43,7 @@ public struct AdsConfig {
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
     
-    static var nativeAdEnabled: Bool {
+    public static var nativeAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }

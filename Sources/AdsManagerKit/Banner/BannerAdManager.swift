@@ -140,30 +140,39 @@ final class BannerAdManager: NSObject {
     }
 
     // MARK: - SwiftUI Banner Container
-    public func makeBannerContainer(adType: BannerAdType,
-                                    onAdLoaded: ((CGFloat) -> Void)? = nil,
-                                    onAdStateChanged: ((Bool, CGFloat) -> Void)? = nil) -> UIView {
-        let containerView = UIView()
-        
+    public func makeBannerContainer(
+        in containerView: UIView,
+        width: CGFloat,
+        adType: BannerAdType,
+        onAdLoaded: ((CGFloat) -> Void)? = nil,
+        onAdStateChanged: ((Bool, CGFloat) -> Void)? = nil
+    ) {
+
         guard let rootVC = UIApplication.shared
             .connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows })
             .first(where: { $0.isKeyWindow })?
-            .rootViewController else {
-                return containerView
-            }
-        
-        // Load the banner and forward its state to SwiftUI.
-        loadBannerAd(in: containerView, vc: rootVC, type: adType) { success, height in
+            .rootViewController
+        else {
+            onAdStateChanged?(false, 0)
+            return
+        }
+
+        loadBannerAd(
+            in: containerView,
+            vc: rootVC,
+            type: adType
+        ) { success, height in
+
             let resolvedHeight = success ? height : 0
+
             onAdStateChanged?(success, resolvedHeight)
+
             if success {
                 onAdLoaded?(resolvedHeight)
             }
         }
-        
-        return containerView
     }
 }
 
@@ -193,15 +202,14 @@ extension BannerAdManager: BannerViewDelegate {
 
 // MARK: - SwiftUI Banner Wrapper
 public struct BannerAdView: UIViewRepresentable {
+
     public var adType: BannerAdType
-    public var onAdLoaded: ((CGFloat) -> Void)? = nil
+    public var onAdLoaded: ((CGFloat) -> Void)?
+
     @Binding private var isLoaded: Bool
     @Binding private var height: CGFloat
 
-    public init(adType: BannerAdType,
-                isLoaded: Binding<Bool> = .constant(false),
-                height: Binding<CGFloat> = .constant(0),
-                onAdLoaded: ((CGFloat) -> Void)? = nil) {
+    public init(adType: BannerAdType, isLoaded: Binding<Bool> = .constant(false), height: Binding<CGFloat> = .constant(0), onAdLoaded: ((CGFloat) -> Void)? = nil) {
         self.adType = adType
         self._isLoaded = isLoaded
         self._height = height
@@ -209,17 +217,46 @@ public struct BannerAdView: UIViewRepresentable {
     }
 
     public func makeUIView(context: Context) -> UIView {
-        BannerAdManager.shared.makeBannerContainer(
-            adType: adType,
-            onAdLoaded: onAdLoaded,
-            onAdStateChanged: { loaded, resolvedHeight in
-                DispatchQueue.main.async {
-                    isLoaded = loaded
-                    height = resolvedHeight
-                }
+        let containerView = BannerContainerView()
+        containerView.onLayout = {
+            guard containerView.bounds.width > 0 else {
+                return
             }
-        )
+
+            BannerAdManager.shared.makeBannerContainer(
+                in: containerView,
+                width: containerView.bounds.width,
+                adType: adType,
+                onAdLoaded: onAdLoaded,
+                onAdStateChanged: { loaded, resolvedHeight in
+
+                    DispatchQueue.main.async {
+                        isLoaded = loaded
+                        height = resolvedHeight
+                    }
+                }
+            )
+        }
+
+        return containerView
     }
 
-    public func updateUIView(_ uiView: UIView, context: Context) { }
+    public func updateUIView(_ uiView: UIView, context: Context) {
+        // Intentionally empty.
+    }
+}
+
+private final class BannerContainerView: UIView {
+    var onLayout: (() -> Void)?
+    private var didLayout = false
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0 else { return }
+
+        guard !didLayout else { return }
+
+        didLayout = true
+        onLayout?()
+    }
 }
