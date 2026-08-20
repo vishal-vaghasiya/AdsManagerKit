@@ -1,22 +1,7 @@
 import GoogleMobileAds
 import SwiftUI
 import UIKit
-public enum AdType: String, CaseIterable, Hashable, Sendable {
-    case SMALL = "NativeAdView_Small"   //108
-    case MEDIUM = "NativeAdView_Medium" //170
-    case LARGE = "NativeAdView"         //280
 
-    public var height: CGFloat {
-        switch self {
-        case .SMALL:
-            return 108
-        case .MEDIUM:
-            return 170
-        case .LARGE:
-            return 280
-        }
-    }
-}
 @MainActor
 final class NativeAdManager: NSObject {
     
@@ -26,6 +11,12 @@ final class NativeAdManager: NSObject {
     
     private var lastNativeAdErrorTime: Date?
     private let nativeAdRetryCooldown: TimeInterval = 90 // seconds (optimized for native ads stability & eCPM)
+
+    // MARK: - Preloaded Native Ads
+    private var preloadedNativeAds: [NativeAd] = []
+
+    /// Number of ads currently being requested for the preload cache.
+    private var preloadingNativeAdsCount = 0
 
     private override init() {
         super.init()
@@ -58,77 +49,178 @@ final class NativeAdManager: NSObject {
 
         return !canRetry
     }
+
+    // MARK: - Preload Native Ads
+
+    public func preloadNativeAds(
+        rootViewController: UIViewController,
+        count: Int = 1
+    ) async {
+        guard AdsConfig.nativeAdEnabled && AdsConfig.nativeAdPreloadEnabled else {
+            return
+        }
+
+        // Calculate how many ads are still required,
+        // including requests that are already in progress.
+        let availableSlots =
+        AdsConfig.nativeAdPreloadCount
+        - preloadedNativeAds.count
+        - preloadingNativeAdsCount
+
+        let requiredCount = min(count, max(availableSlots, 0))
+
+        guard requiredCount > 0 else {
+            return
+        }
+
+        // Reserve the slots before starting network requests.
+        preloadingNativeAdsCount += requiredCount
+
+        for _ in 0..<requiredCount {
+            let nativeAd = await requestNativeAd(
+                rootViewController: rootViewController
+            )
+
+            // Request has finished.
+            preloadingNativeAdsCount -= 1
+
+            guard let nativeAd else {
+                continue
+            }
+
+            // Make sure the cache never exceeds the maximum.
+            guard preloadedNativeAds.count < AdsConfig.nativeAdPreloadCount else {
+                continue
+            }
+
+            preloadedNativeAds.append(nativeAd)
+        }
+    }
     
-    // MARK: - Get Ad (Always Load On Demand)
-    func getAd(in containerView: UIView, viewController: UIViewController, adType: AdType, completion: @escaping (Bool, CGFloat) -> Void) {
-        // Show shimmer while native ad is loading
+    // MARK: - Get Preloaded Native Ad
+    private func getPreloadedNativeAd() -> NativeAd? {
+        guard !preloadedNativeAds.isEmpty else {
+            return nil
+        }
+
+        return preloadedNativeAds.removeFirst()
+    }
+    
+    // MARK: - Native Ad Loading
+    public func loadNativeAd(
+        in containerView: UIView,
+        viewController: UIViewController,
+        adView: NativeAdView,
+        height: CGFloat,
+        completion: @escaping (Bool, CGFloat) -> Void
+    ) {
         let shimmerView = AdShimmerView()
-        shimmerView.show(in: containerView, height: adType.height)
-        
-        loadAd(rootViewController: viewController) { [weak self] ad in
+        shimmerView.show(
+            in: containerView,
+            height: height
+        )
+
+        Task { @MainActor [weak self] in
             guard let self else {
                 shimmerView.remove()
                 completion(false, 0)
                 return
             }
-            
-            // Remove shimmer after ad loading finishes
-            shimmerView.remove()
-            
-            if let ad {
-                self.displayNativeAd(in: containerView, ad, adType: adType)
-                completion(true, adType.height)
-            } else {
-                completion(false, 0)
+
+            // 1. Try preloaded ad first
+            if let preloadedAd = self.getPreloadedNativeAd() {
+
+                shimmerView.remove()
+
+                self.renderNativeAd(
+                    in: containerView,
+                    adView: adView,
+                    nativeAd: preloadedAd
+                )
+
+                completion(true, height)
+
+                // Refill preload cache
+                await self.preloadNativeAds(
+                    rootViewController: viewController,
+                    count: 1
+                )
+
+                return
             }
+
+            // 2. No preloaded ad → request from network
+            let nativeAd = await self.requestNativeAd(
+                rootViewController: viewController
+            )
+
+            shimmerView.remove()
+
+            guard let nativeAd else {
+                completion(false, 0)
+                return
+            }
+
+            self.renderNativeAd(
+                in: containerView,
+                adView: adView,
+                nativeAd: nativeAd
+            )
+
+            completion(true, height)
+
+            // 3. Refill preload cache
+            await self.preloadNativeAds(
+                rootViewController: viewController,
+                count: 1
+            )
         }
     }
     
-    // MARK: - Internal Ad Loader
-    private func loadAd(rootViewController: UIViewController?, completion: @escaping (NativeAd?) -> Void) {
+    // MARK: - Request Native Ad
+    private func requestNativeAd(
+        rootViewController: UIViewController?
+    ) async -> NativeAd? {
+        
         guard AdsConfig.nativeAdEnabled else {
-            completion(nil)
-            return
+            return nil
         }
-        
+
         guard !hasExceededErrorLimit() else {
-            completion(nil)
-            return
+            return nil
         }
-        
-        let adLoader = AdLoader(
-            adUnitID: AdsConfig.nativeAdUnitId,
-            rootViewController: rootViewController,
-            adTypes: [.native],
-            options: nil
-        )
-        
-        completionHandlers[adLoader] = completion
-        adLoader.delegate = self
-        adLoader.load(Request())
+
+        return await withCheckedContinuation { continuation in
+            
+            let adLoader = AdLoader(
+                adUnitID: AdsConfig.nativeAdUnitId,
+                rootViewController: rootViewController,
+                adTypes: [.native],
+                options: nil
+            )
+
+            completionHandlers[adLoader] = { nativeAd in
+                continuation.resume(returning: nativeAd)
+            }
+
+            adLoader.delegate = self
+            adLoader.load(Request())
+        }
     }
     
-    /// Displays a Google Mobile Ads native ad inside the specified container view.
-    /// - Parameters:
-    ///   - containerView: The UIView where the native ad will be rendered.
-    ///   - nativeAd: The loaded `NativeAd` instance to be displayed.
-    ///   - adType: The `AdType` defining which ad layout (Small, Medium, or Large) XIB to load.
-    ///
-    /// Loads the appropriate XIB for the given `adType`, binds ad assets (headline, icon, CTA, etc.)
-    /// to the UI elements, and adds it to the container view. Also ensures interaction behavior and
-    /// star rating display are configured correctly.
-    private func displayNativeAd(in containerView: UIView, _ nativeAd: NativeAd, adType: AdType) {
+    // MARK: - Native Ad Rendering
+    private func renderNativeAd(
+        in containerView: UIView,
+        adView: NativeAdView,
+        nativeAd: NativeAd
+    ) {
         // Remove any existing native ad views to prevent stacking
         containerView.subviews.forEach { $0.removeFromSuperview() }
-        
-        // Load the custom XIB
-        guard let adView = Bundle.module.loadNibNamed(adType.rawValue, owner: nil, options: nil)?.first as? NativeAdView else {
-            return
-        }
         
         containerView.clipsToBounds = true
         adView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(adView)
+        
         NSLayoutConstraint.activate([
             adView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             adView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
@@ -141,16 +233,18 @@ final class NativeAdManager: NSObject {
         
         adView.mediaView?.contentMode = .scaleAspectFill
         adView.mediaView?.clipsToBounds = true
-        
         adView.mediaView?.mediaContent = nativeAd.mediaContent
+        
         (adView.iconView as? UIImageView)?.image = nativeAd.icon?.image
         (adView.headlineView as? UILabel)?.text = nativeAd.headline
         (adView.bodyView as? UILabel)?.text = nativeAd.body
+        
         // Optional extra assets
         (adView.advertiserView as? UILabel)?.text = nativeAd.advertiser
         (adView.priceView as? UILabel)?.text = nativeAd.price
         (adView.storeView as? UILabel)?.text = nativeAd.store
         (adView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
+        
         // Set the star rating
         if let starRating = nativeAd.starRating {
             (adView.starRatingView as? UIImageView)?.image = getStarRatingImage(for: starRating)
@@ -166,39 +260,55 @@ final class NativeAdManager: NSObject {
 
 // MARK: - SwiftUI Native Wrapper
 public struct NativeAdContainerView: UIViewRepresentable {
-    public var adType: AdType
+    
+    public let adView: NativeAdView
+    public let height: CGFloat
+    
     @Binding private var isLoaded: Bool
-    @Binding private var height: CGFloat
-
-    public init(adType: AdType = .SMALL,
-                isLoaded: Binding<Bool> = .constant(false),
-                height: Binding<CGFloat> = .constant(0)) {
-        self.adType = adType
+    @Binding private var resolvedHeight: CGFloat
+    
+    public init(
+        adView: NativeAdView,
+        height: CGFloat,
+        isLoaded: Binding<Bool> = .constant(false),
+        resolvedHeight: Binding<CGFloat> = .constant(0)
+    ) {
+        self.adView = adView
+        self.height = height
         self._isLoaded = isLoaded
-        self._height = height
+        self._resolvedHeight = resolvedHeight
     }
-
+    
     public func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
         containerView.clipsToBounds = true
-        containerView.frame.size.height = adType.height
-
+        containerView.frame.size.height = height
+        
         guard let rootVC = UIApplication.shared.adsManagerRootViewController else {
             isLoaded = false
-            height = 0
+            resolvedHeight = 0
             return containerView
         }
-
-        NativeAdManager.shared.getAd(in: containerView, viewController: rootVC, adType: adType) { loaded, resolvedHeight in
+        
+        NativeAdManager.shared.loadNativeAd(
+            in: containerView,
+            viewController: rootVC,
+            adView: adView,
+            height: height
+        ) { loaded, resolvedAdHeight in
             isLoaded = loaded
-            height = resolvedHeight
-            containerView.frame.size.height = resolvedHeight
+            resolvedHeight = resolvedAdHeight
+            containerView.frame.size.height = resolvedAdHeight
         }
-
+        
         return containerView
     }
-
-    public func updateUIView(_ uiView: UIView, context: Context) { }
+    
+    public func updateUIView(
+        _ uiView: UIView,
+        context: Context
+    ) {
+    }
 }
 
 private extension UIApplication {

@@ -9,7 +9,7 @@ class FullNativeAdVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        AdsManager.shared.loadNative(in: nativeAdView, rootViewController: self, adType: .LARGE)
+//        AdsManager.shared.loadNative(in: nativeAdView, rootViewController: self, adType: .LARGE)
     }
     
     override func viewDidAppear(_ animated: Bool) {

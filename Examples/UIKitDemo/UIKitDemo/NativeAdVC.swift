@@ -1,18 +1,26 @@
 import UIKit
 import AdsManager
-
+import GoogleMobileAds
 class NativeAdVC: UIViewController {
-    
-    @IBOutlet weak var smallNativeAdView: UIView!
-    @IBOutlet weak var mediumNativeAdView: UIView!
+    @IBOutlet weak var containerView: UIView!
+    @IBOutlet weak var conContainerViewHeight: NSLayoutConstraint!
     override func viewDidLoad() {
         super.viewDidLoad()
 
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        AdsManager.shared.loadNative(in: smallNativeAdView, rootViewController: self, adType: .SMALL)
-        AdsManager.shared.loadNative(in: mediumNativeAdView, rootViewController: self, adType: .MEDIUM)
+        guard let adView = Bundle.main.loadNibNamed("NativeAdView", owner: nil, options: nil)?.first as? NativeAdView else {
+            return
+        }
+        
+        AdsManager.shared.loadNativeAd(
+            in: containerView,
+            rootViewController: self,
+            adView: adView,
+            height: 350) { isLoaded, height in
+                self.conContainerViewHeight.constant = height
+            }
     }
     
     @IBAction func fullScreenNativeClick(_ sender: UIButton) {
@@ -21,15 +29,5 @@ class NativeAdVC: UIViewController {
         vc.modalPresentationStyle = .overFullScreen
         self.present(vc, animated: false)
     }
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
     
 }

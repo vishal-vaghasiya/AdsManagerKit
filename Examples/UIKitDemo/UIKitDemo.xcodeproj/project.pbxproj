@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F28B2DA3036D7EF00101E9A /* NativeAdView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0F28B2D33036D7EF00101E9A /* NativeAdView.xib */; };
 		0F8F479D2ECD787800D658FC /* AdsManager in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8F479C2ECD787800D658FC /* AdsManager */; };
 		0F8F48432ECD888400D658FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F48362ECD888400D658FC /* Assets.xcassets */; };
 		0F8F48452ECD888400D658FC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */; };
@@ -22,6 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0F28B2D33036D7EF00101E9A /* NativeAdView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NativeAdView.xib; sourceTree = "<group>"; };
 		0F8153252ECC488D0002EA0B /* UIKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F8F48352ECD888400D658FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0F8F48362ECD888400D658FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -49,6 +51,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0F28B2D73036D7EF00101E9A /* NativeAds */ = {
+			isa = PBXGroup;
+			children = (
+				0F28B2D33036D7EF00101E9A /* NativeAdView.xib */,
+			);
+			path = NativeAds;
+			sourceTree = "<group>";
+		};
 		0F81531C2ECC488D0002EA0B = {
 			isa = PBXGroup;
 			children = (
@@ -79,6 +89,7 @@
 				0F8F48372ECD888400D658FC /* BannerAdVC.swift */,
 				0F8F483D2ECD888400D658FC /* NativeAdVC.swift */,
 				0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */,
+				0F28B2D73036D7EF00101E9A /* NativeAds */,
 				0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */,
 			);
 			path = UIKitDemo;
@@ -152,6 +163,7 @@
 				0F8F48432ECD888400D658FC /* Assets.xcassets in Resources */,
 				0F8F48452ECD888400D658FC /* LaunchScreen.storyboard in Resources */,
 				0F8F48462ECD888400D658FC /* Main.storyboard in Resources */,
+				0F28B2DA3036D7EF00101E9A /* NativeAdView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -47,6 +47,16 @@ public struct AdsConfig {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
+    
+    static var nativeAdPreloadEnabled: Bool {
+        get { adEnabled(#function) }
+        set { UserDefaults.standard.set(newValue, forKey: #function) }
+    }
+
+    static var nativeAdPreloadCount: Int {
+        get { UserDefaults.standard.object(forKey: #function) as? Int ?? 2 }
+        set { UserDefaults.standard.set(newValue, forKey: #function) }
+    }
 
     // MARK: - Ad Unit Identifiers
     // Stores the AdMob unit IDs for each ad format

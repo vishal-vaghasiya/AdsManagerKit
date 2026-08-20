@@ -41,6 +41,8 @@ public final class AdsManager: NSObject {
         bannerAdUnitId: String? = nil,
         interstitialAdUnitId: String? = nil,
         nativeAdUnitId: String? = nil,
+        nativeAdPreloadEnabled: Bool,
+        nativeAdPreloadCount: Int,
         interstitialAdShowCount: Int = 4,
         maxInterstitialAdsPerSession: Int = 10,
         bannerAdErrorCount: Int = 5,
@@ -63,6 +65,9 @@ public final class AdsManager: NSObject {
         
         AdsConfig.interstitialAdShowCount = interstitialAdShowCount
         AdsConfig.maxInterstitialAdsPerSession = maxInterstitialAdsPerSession
+        
+        AdsConfig.nativeAdPreloadEnabled = nativeAdPreloadEnabled
+        AdsConfig.nativeAdPreloadCount = nativeAdPreloadCount
         
         AdsConfig.bannerAdErrorCount = bannerAdErrorCount
         AdsConfig.interstitialAdErrorCount = interstitialAdErrorCount
@@ -111,6 +116,16 @@ public final class AdsManager: NSObject {
                 await InterstitialAdManager.shared.loadAd()
             }
         }
+        
+        // Preload Native Ad.
+        if AdsConfig.nativeAdEnabled && AdsConfig.nativeAdPreloadEnabled {
+            if let rootViewController = AdsManager.shared.topMostViewController() {
+                Task {
+                    await NativeAdManager.shared.preloadNativeAds(rootViewController: rootViewController)
+                }
+            }
+        }
+        
     }
     
     public static func setToPremium(_ isPremium: Bool) {
@@ -208,7 +223,7 @@ public final class AdsManager: NSObject {
     }
     
     // MARK: - Banner Ad
-    public func loadBanner(in containerView: UIView,
+    public func loadBannerAd(in containerView: UIView,
                            rootViewController: UIViewController,
                            type: BannerAdType,
                            completion: ((Bool, CGFloat) -> Void)? = nil) {
@@ -216,11 +231,19 @@ public final class AdsManager: NSObject {
     }
     
     // MARK: - Native Ad
-    public func loadNative(in containerView: UIView,
-                           rootViewController: UIViewController,
-                           adType: AdType = .SMALL,
-                           stateChanged: ((Bool, CGFloat) -> Void)? = nil) {
-        NativeAdManager.shared.getAd(in: containerView, viewController: rootViewController, adType: adType, completion: stateChanged ?? { _, _ in })
+    public func loadNativeAd(
+        in containerView: UIView,
+        rootViewController: UIViewController,
+        adView: NativeAdView,
+        height: CGFloat,
+        completion: ((Bool, CGFloat) -> Void)? = nil) {
+        NativeAdManager.shared.loadNativeAd(
+            in: containerView,
+            viewController: rootViewController,
+            adView: adView,
+            height: height,
+            completion: completion ?? { _, _ in }
+        )
     }
     
     /// Binds a NativeAd model to a NativeAdView (fills views, hides empty assets, sets nativeAd property).

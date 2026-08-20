@@ -29,6 +29,8 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
                                 bannerAdEnabled: true,
                                 interstitialAdEnabled: true,
                                 nativeAdEnabled: true,
+                                nativeAdPreloadEnabled: true,
+                                nativeAdPreloadCount: 1,
                                 interstitialAdShowCount: 4,
                                 maxInterstitialAdsPerSession: 5,
                                 bannerAdErrorCount: 7,

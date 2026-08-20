@@ -31,10 +31,7 @@ let package = Package(
                 .product(name: "JGProgressHUD", package: "JGProgressHUD")
             ],
             path: "Sources",
-            exclude: ["AdsManagerCompatibility"],
-            resources: [
-                .process("Resources")
-            ]
+            exclude: ["AdsManagerCompatibility"]
         ),
         .target(
             name: "AdsManager",
