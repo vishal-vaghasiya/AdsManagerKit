@@ -4,7 +4,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24743"/>
-        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -168,13 +167,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2aN-UB-DAo">
-                                <rect key="frame" x="116" y="138" width="161" height="34.333333333333343"/>
+                                <rect key="frame" x="138" y="138" width="117" height="34.333333333333343"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="34.329999999999998" id="tOv-Dw-mRE"/>
                                 </constraints>
-                                <buttonConfiguration key="configuration" style="gray" title="Full Screen Native"/>
+                                <buttonConfiguration key="configuration" style="gray" title="Inline Native"/>
                                 <connections>
-                                    <action selector="fullScreenNativeClick:" destination="iUd-A5-93w" eventType="touchUpInside" id="vOi-jm-fQy"/>
+                                    <action selector="inlineNativeClick:" destination="iUd-A5-93w" eventType="touchUpInside" id="l6M-Yw-W4V"/>
                                 </connections>
                             </button>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="S8F-kE-2hc">
@@ -210,50 +209,31 @@
             </objects>
             <point key="canvasLocation" x="2546" y="105"/>
         </scene>
-        <!--Full Native AdVC-->
+        <!--Feed View Controller-->
         <scene sceneID="JjP-k3-MiJ">
             <objects>
-                <viewController storyboardIdentifier="FullNativeAdVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="eXF-8d-umh" customClass="FullNativeAdVC" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="FeedViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="eXF-8d-umh" customClass="FeedViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="VeY-sb-NPd">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="upB-Z7-l0c">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="r4E-bL-aP9">
                                 <rect key="frame" x="0.0" y="118" width="393" height="666"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                            </view>
-                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TmE-91-0b5">
-                                <rect key="frame" x="360.66666666666669" y="133" width="17.333333333333314" height="22"/>
-                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                <state key="normal">
-                                    <imageReference key="image" image="xmark" catalog="system" renderingMode="hierarchical">
-                                        <hierarchicalColors>
-                                            <color systemColor="labelColor"/>
-                                            <color systemColor="secondaryLabelColor"/>
-                                            <color systemColor="tertiaryLabelColor"/>
-                                        </hierarchicalColors>
-                                    </imageReference>
-                                </state>
-                                <connections>
-                                    <action selector="closeButtonClick:" destination="eXF-8d-umh" eventType="touchUpInside" id="NL4-Xc-Lz6"/>
-                                </connections>
-                            </button>
+                            </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="UU5-pt-UU3"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="upB-Z7-l0c" firstAttribute="top" secondItem="UU5-pt-UU3" secondAttribute="top" id="7gN-eX-XUe"/>
-                            <constraint firstItem="upB-Z7-l0c" firstAttribute="leading" secondItem="UU5-pt-UU3" secondAttribute="leading" id="NHx-ZW-5Co"/>
-                            <constraint firstItem="UU5-pt-UU3" firstAttribute="trailing" secondItem="TmE-91-0b5" secondAttribute="trailing" constant="15" id="T18-93-qm5"/>
-                            <constraint firstItem="TmE-91-0b5" firstAttribute="top" secondItem="UU5-pt-UU3" secondAttribute="top" constant="15" id="WQo-h2-4Hc"/>
-                            <constraint firstItem="upB-Z7-l0c" firstAttribute="trailing" secondItem="UU5-pt-UU3" secondAttribute="trailing" id="dZl-SE-M38"/>
-                            <constraint firstItem="UU5-pt-UU3" firstAttribute="bottom" secondItem="upB-Z7-l0c" secondAttribute="bottom" id="o8i-zJ-VzC"/>
+                            <constraint firstItem="UU5-pt-UU3" firstAttribute="bottom" secondItem="r4E-bL-aP9" secondAttribute="bottom" id="Fcx-v2-1wd"/>
+                            <constraint firstItem="r4E-bL-aP9" firstAttribute="leading" secondItem="UU5-pt-UU3" secondAttribute="leading" id="XNj-uA-BEf"/>
+                            <constraint firstItem="r4E-bL-aP9" firstAttribute="top" secondItem="UU5-pt-UU3" secondAttribute="top" id="dlx-6L-D2g"/>
+                            <constraint firstItem="UU5-pt-UU3" firstAttribute="trailing" secondItem="r4E-bL-aP9" secondAttribute="trailing" id="qF8-qo-rpp"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="l28-pV-7zL"/>
                     <connections>
-                        <outlet property="brnClose" destination="TmE-91-0b5" id="j5o-5v-mdr"/>
-                        <outlet property="nativeAdView" destination="upB-Z7-l0c" id="W2k-g0-OWF"/>
+                        <outlet property="tableView" destination="r4E-bL-aP9" id="kan-Yx-IlE"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6pf-jC-465" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -262,21 +242,11 @@
         </scene>
     </scenes>
     <resources>
-        <image name="xmark" catalog="system" width="128" height="113"/>
-        <systemColor name="labelColor">
-            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-        <systemColor name="secondaryLabelColor">
-            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGroupedBackgroundColor">
             <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="tertiaryLabelColor">
-            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.29803921568627451" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

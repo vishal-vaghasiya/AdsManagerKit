@@ -42,11 +42,11 @@ class MainViewController: UIViewController {
 }
 
 extension MainViewController: NativeAdLoaderOutput {
-    func nativeAdLoader(_ loader: NativeAdLoader, didLoad ad: NativeAd) {
+    func nativeAdLoader(_ loader: AdsManagerKit.InlineNativeAdManager, didLoad ad: NativeAd) {
         print("didLoad")
     }
     
-    func nativeAdLoader(_ loader: NativeAdLoader, didFailWith error: any Error) {
+    func nativeAdLoader(_ loader: AdsManagerKit.InlineNativeAdManager, didFailWith error: any Error) {
         print("didFailWith")
     }
 }

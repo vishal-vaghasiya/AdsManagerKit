@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		0F28B2DA3036D7EF00101E9A /* NativeAdView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0F28B2D33036D7EF00101E9A /* NativeAdView.xib */; };
+		0F28B2E9303704DC00101E9A /* FeedCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E4303704DC00101E9A /* FeedCell.swift */; };
+		0F28B2EA303704DC00101E9A /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E5303704DC00101E9A /* FeedItem.swift */; };
+		0F28B2EB303704DC00101E9A /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E6303704DC00101E9A /* FeedViewController.swift */; };
+		0F28B2EC303704DC00101E9A /* NativeAdTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */; };
 		0F8F479D2ECD787800D658FC /* AdsManager in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8F479C2ECD787800D658FC /* AdsManager */; };
 		0F8F48432ECD888400D658FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F48362ECD888400D658FC /* Assets.xcassets */; };
 		0F8F48452ECD888400D658FC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */; };
@@ -18,12 +22,15 @@
 		0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483E2ECD888400D658FC /* SceneDelegate.swift */; };
 		0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */; };
 		0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48402ECD888400D658FC /* MainViewController.swift */; };
-		0F8F484E2ECD8AF100D658FC /* FullNativeAdVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */; };
 		D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3843190302A3DD40011AE29 /* SplashViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0F28B2D33036D7EF00101E9A /* NativeAdView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NativeAdView.xib; sourceTree = "<group>"; };
+		0F28B2E4303704DC00101E9A /* FeedCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCell.swift; sourceTree = "<group>"; };
+		0F28B2E5303704DC00101E9A /* FeedItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItem.swift; sourceTree = "<group>"; };
+		0F28B2E6303704DC00101E9A /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewController.swift; sourceTree = "<group>"; };
+		0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdTableViewCell.swift; sourceTree = "<group>"; };
 		0F8153252ECC488D0002EA0B /* UIKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F8F48352ECD888400D658FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0F8F48362ECD888400D658FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -35,7 +42,6 @@
 		0F8F483E2ECD888400D658FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		0F8F48402ECD888400D658FC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		0F8F48422ECD888400D658FC /* UIKitDemo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = UIKitDemo.xcdatamodel; sourceTree = "<group>"; };
-		0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullNativeAdVC.swift; sourceTree = "<group>"; };
 		D3843190302A3DD40011AE29 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -57,6 +63,17 @@
 				0F28B2D33036D7EF00101E9A /* NativeAdView.xib */,
 			);
 			path = NativeAds;
+			sourceTree = "<group>";
+		};
+		0F28B2E8303704DC00101E9A /* InlineNative */ = {
+			isa = PBXGroup;
+			children = (
+				0F28B2E4303704DC00101E9A /* FeedCell.swift */,
+				0F28B2E5303704DC00101E9A /* FeedItem.swift */,
+				0F28B2E6303704DC00101E9A /* FeedViewController.swift */,
+				0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */,
+			);
+			path = InlineNative;
 			sourceTree = "<group>";
 		};
 		0F81531C2ECC488D0002EA0B = {
@@ -88,7 +105,7 @@
 				0F8F48402ECD888400D658FC /* MainViewController.swift */,
 				0F8F48372ECD888400D658FC /* BannerAdVC.swift */,
 				0F8F483D2ECD888400D658FC /* NativeAdVC.swift */,
-				0F8F484D2ECD8AF100D658FC /* FullNativeAdVC.swift */,
+				0F28B2E8303704DC00101E9A /* InlineNative */,
 				0F28B2D73036D7EF00101E9A /* NativeAds */,
 				0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */,
 			);
@@ -178,7 +195,10 @@
 				0F8F48482ECD888400D658FC /* BannerAdVC.swift in Sources */,
 				0F8F48492ECD888400D658FC /* NativeAdVC.swift in Sources */,
 				0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */,
-				0F8F484E2ECD8AF100D658FC /* FullNativeAdVC.swift in Sources */,
+				0F28B2E9303704DC00101E9A /* FeedCell.swift in Sources */,
+				0F28B2EA303704DC00101E9A /* FeedItem.swift in Sources */,
+				0F28B2EB303704DC00101E9A /* FeedViewController.swift in Sources */,
+				0F28B2EC303704DC00101E9A /* NativeAdTableViewCell.swift in Sources */,
 				0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */,
 				0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */,
 				D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */,

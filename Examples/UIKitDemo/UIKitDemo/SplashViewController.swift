@@ -24,10 +24,10 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
         #endif
         
         AdsManager.configureAds(isProduction: isProduction,
-                                openAdEnabled: true,
+                                openAdEnabled: false,
                                 openAdOnSplashEnabled: false,
                                 bannerAdEnabled: true,
-                                interstitialAdEnabled: true,
+                                interstitialAdEnabled: false,
                                 nativeAdEnabled: true,
                                 nativeAdPreloadEnabled: true,
                                 nativeAdPreloadCount: 1,

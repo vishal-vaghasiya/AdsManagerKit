@@ -23,9 +23,9 @@ class NativeAdVC: UIViewController {
             }
     }
     
-    @IBAction func fullScreenNativeClick(_ sender: UIButton) {
+    @IBAction func inlineNativeClick(_ sender: UIButton) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "FullNativeAdVC") as! FullNativeAdVC
+        let vc = storyboard.instantiateViewController(withIdentifier: "FeedViewController") as! FeedViewController
         vc.modalPresentationStyle = .overFullScreen
         self.present(vc, animated: false)
     }
