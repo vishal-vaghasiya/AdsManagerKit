@@ -1,11 +1,7 @@
 import UIKit
 import GoogleMobileAds
 import AdsManagerKit
-class FeedViewController:
-    UIViewController,
-    UITableViewDataSource,
-    UITableViewDelegate,
-    NativeAdLoaderOutput {
+class FeedViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, NativeAdLoaderOutput {
     
     // MARK: - Properties
     
@@ -49,25 +45,18 @@ class FeedViewController:
             FeedItem(
                 id: index,
                 title: "Feed Item \(index)",
-                subtitle:
-                    "This is the description for feed item \(index)."
+                subtitle: "This is the description for feed item \(index)."
             )
         }
     }
     
     // MARK: - Native Ads
     private func loadNativeAds() {
-        InlineNativeAdManager.shared.loadNativeAds(
-            count: 5,
-            rootViewController: self
-        ) { [weak self] ads in
-            
+        InlineNativeAdManager.shared.loadNativeAds(count: 5, rootViewController: self) { [weak self] ads in
             guard let self else {
                 return
             }
-            print(
-                "Finished loading \(ads.count) native ads"
-            )
+            print("Finished loading \(ads.count) native ads")
             // This contains all successfully loaded ads.
             self.nativeAds = ads
             self.tableView.reloadData()
@@ -76,10 +65,7 @@ class FeedViewController:
     
     // MARK: - NativeAdLoaderOutput
     
-    func nativeAdLoader(
-        _ loader: InlineNativeAdManager,
-        didLoad ad: NativeAd
-    ) {
+    func nativeAdLoader(_ loader: InlineNativeAdManager, didLoad ad: NativeAd) {
         // This is called immediately for every ad.
         print("Native ad loaded")
         nativeAds.append(ad)
@@ -88,71 +74,32 @@ class FeedViewController:
         tableView.reloadData()
     }
     
-    func nativeAdLoader(
-        _ loader: InlineNativeAdManager,
-        didFailWith error: Error
-    ) {
-        
-        print(
-            "Native ad failed:",
-            error.localizedDescription
-        )
+    func nativeAdLoader(_ loader: InlineNativeAdManager, didFailWith error: Error) {
+        print("Native ad failed:", error.localizedDescription)
     }
     
     // MARK: - UITableViewDataSource
     
-    func tableView(
-        _ tableView: UITableView,
-        numberOfRowsInSection section: Int
-    ) -> Int {
-        
+    func tableView(_ tableView: UITableView,numberOfRowsInSection section: Int) -> Int {
         return items.count + nativeAds.count
     }
     
-    func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
-        
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Check if this row represents an ad.
-        if let adIndex = nativeAdIndex(
-            for: indexPath
-        ) {
-            
+        if let adIndex = nativeAdIndex(for: indexPath) {
             guard adIndex < nativeAds.count else {
                 return UITableViewCell()
             }
             
-            let cell =
-            tableView.dequeueReusableCell(
-                withIdentifier:
-                    NativeAdTableViewCell.reuseIdentifier,
-                for: indexPath
-            ) as! NativeAdTableViewCell
-            
-            cell.configure(
-                with: nativeAds[adIndex]
-            )
-            
+            let cell = tableView.dequeueReusableCell(withIdentifier: NativeAdTableViewCell.reuseIdentifier, for: indexPath) as! NativeAdTableViewCell
+            cell.configure(with: nativeAds[adIndex])
             return cell
         }
         
         // Normal content cell.
-        
-        let contentIndex =
-        contentIndex(for: indexPath)
-        
-        let cell =
-        tableView.dequeueReusableCell(
-            withIdentifier:
-                FeedCell.reuseIdentifier,
-            for: indexPath
-        ) as! FeedCell
-        
-        cell.configure(
-            with: items[contentIndex]
-        )
-        
+        let contentIndex = contentIndex(for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.reuseIdentifier, for: indexPath) as! FeedCell
+        cell.configure(with: items[contentIndex])
         return cell
     }
     
@@ -170,8 +117,7 @@ class FeedViewController:
             return nil
         }
         
-        let adIndex =
-        (position / (adInterval + 1)) - 1
+        let adIndex = (position / (adInterval + 1)) - 1
         
         guard adIndex >= 0,
               adIndex < nativeAds.count else {

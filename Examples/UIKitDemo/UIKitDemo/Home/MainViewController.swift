@@ -16,11 +16,25 @@ class MainViewController: UIViewController {
         self.navigationController?.pushViewController(vc, animated: true)
     }
    
+    @IBAction func inlineBannerButtonClick(_ sender: UIButton) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ListViewController") as! ListViewController
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
     @IBAction func nativeAdButtonClick(_ sender: UIButton) {
         AdsManager.shared.showInterstitialIfAvailable()
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "NativeAdViewController") as! NativeAdViewController
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @IBAction func inlineNativeButtonClick(_ sender: UIButton) {
+        AdsManager.shared.showInterstitialIfAvailable()
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "FeedViewController") as! FeedViewController
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }
