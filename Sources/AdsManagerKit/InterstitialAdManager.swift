@@ -12,6 +12,7 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     private var displayCounter: Int = 0
     private var sessionLimitCounter: Int = 0
     private var isLoadingAd = false
+    private var isPresentingAd = false
     private var lastInterstitialShownAt: Date?
     private let interstitialCooldown: TimeInterval = 75
     
@@ -23,10 +24,6 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         }
 
         return Date().timeIntervalSince(loadTime) < interstitialAdValidityDuration
-    }
-    
-    private func createAdRequest() -> Request {
-        return Request() // Latest UMP SDK automatically handles ATT/GDPR
     }
     
     public func resetErrorCounter() {
@@ -41,8 +38,51 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         return AdsConfig.currentInterstitialAdErrorCount >= AdsConfig.interstitialAdErrorCount
     }
     
+    private func clearAd() {
+        interstitialAd = nil
+        interstitialAdLoadTime = nil
+    }
+    
+    private func topViewController(
+        from viewController: UIViewController
+    ) -> UIViewController {
+
+        if let presentedViewController = viewController.presentedViewController {
+            return topViewController(from: presentedViewController)
+        }
+
+        if let navigationController = viewController as? UINavigationController,
+           let visibleViewController = navigationController.visibleViewController {
+            return topViewController(from: visibleViewController)
+        }
+
+        if let tabBarController = viewController as? UITabBarController,
+           let selectedViewController = tabBarController.selectedViewController {
+            return topViewController(from: selectedViewController)
+        }
+
+        return viewController
+    }
+    
+    private func presentingViewController() -> UIViewController? {
+
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return nil
+        }
+
+        guard let rootViewController = windowScene.windows
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else {
+            return nil
+        }
+
+        return topViewController(from: rootViewController)
+    }
+    
     /// Load the interstitial ad
-    func loadAd() async {
+    public func loadAd() async {
         guard ConsentInformation.shared.canRequestAds else {
             #if DEBUG
             print("[InterstitialAd] ⛔️ Consent not granted (canRequestAds = false). Skipping load.")
@@ -82,11 +122,9 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
         }
 
         do {
-            let request = createAdRequest()
-
             let ad = try await InterstitialAd.load(
                 with: AdsConfig.interstitialAdUnitId,
-                request: request
+                request: Request()
             )
 
             resetErrorCounter()
@@ -110,146 +148,177 @@ public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     }
     
     /// Show the interstitial ad if available
-    func showAd() {
-        guard ConsentInformation.shared.canRequestAds else {
+    public func showAd() {
+
+        // MARK: Prevent duplicate presentation
+
+        guard !isPresentingAd else {
             #if DEBUG
-            print("[InterstitialAd] ⛔️ Consent not granted (canRequestAds = false). Skipping show.")
+            print("[InterstitialAd] ⚠️ Ad is already being presented.")
             #endif
             return
         }
-        
+
+        // MARK: App must be active
+
+        guard UIApplication.shared.applicationState == .active else {
+            #if DEBUG
+            print("[InterstitialAd] ⚠️ App is not active — skipping show.")
+            #endif
+            return
+        }
+
+        // MARK: Consent
+
+        guard ConsentInformation.shared.canRequestAds else {
+            #if DEBUG
+            print("[InterstitialAd] ⛔️ Consent not granted — skipping show.")
+            #endif
+            return
+        }
+
+        // MARK: Ads enabled
+
         guard AdsConfig.interstitialAdEnabled else {
             return
         }
-        
+
+        // MARK: Session limit
+
         guard sessionLimitCounter < AdsConfig.maxInterstitialAdsPerSession else {
             #if DEBUG
             print("[InterstitialAd] ⚠️ Session limit reached — skipping show.")
             #endif
             return
         }
-        
+
+        // MARK: Frequency control
+
         let shouldShowByCount =
-        displayCounter >= AdsConfig.interstitialAdShowCount
-        
+            displayCounter >= AdsConfig.interstitialAdShowCount
+
         let shouldShowByTime: Bool = {
             guard let lastShown = lastInterstitialShownAt else {
                 return true
             }
-            
+
             return Date().timeIntervalSince(lastShown) >= interstitialCooldown
         }()
-        
+
         guard shouldShowByCount || shouldShowByTime else {
             displayCounter += 1
+
+            #if DEBUG
+            print("[InterstitialAd] ℹ️ Frequency condition not met.")
+            print("[InterstitialAd] Display counter: \(displayCounter)")
+            #endif
+
             return
         }
-        
+
+        // MARK: Ad availability
+
         guard let ad = interstitialAd else {
             #if DEBUG
             print("[InterstitialAd] ℹ️ Ad not ready — loading for next opportunity.")
             #endif
-            Task {
-                await loadAd()
-            }
-            return
-        }
-        
-        guard isInterstitialAdValid else {
-            #if DEBUG
-            print("[InterstitialAd] ⚠️ Cached ad expired — discarding and reloading.")
-            #endif
-            
-            interstitialAd = nil
-            interstitialAdLoadTime = nil
-            Task {
-                await loadAd()
-            }
-            return
-        }
-        
-        guard let rootViewController = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow })?
-            .rootViewController else {
-            
-            #if DEBUG
-            print("[InterstitialAd] ❌ Could not find root view controller.")
-            #endif
-            
-            return
-        }
-        
-        do {
-            try ad.canPresent(from: rootViewController)
-        } catch {
-            #if DEBUG
-            print("[InterstitialAd] ❌ Ad cannot be presented: \(error.localizedDescription)")
-            #endif
-            
-            interstitialAd = nil
-            interstitialAdLoadTime = nil
-            
-            Task {
-                await loadAd()
-            }
-            return
-        }
-        
-        if AdsConfig.showLoadingIndicator {
-            AppProgressHUD.show(status: "Preparing ad...")
-            
+
             Task { @MainActor [weak self] in
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                guard let self else { return }
-                
-                AppProgressHUD.dismiss()
-                
-                self.displayCounter = 0
-                self.sessionLimitCounter += 1
-                self.lastInterstitialShownAt = Date()
-                self.resetErrorCounter()
-                
-                ad.present(from: rootViewController)
+                await self?.loadAd()
             }
 
             return
         }
-        
-        // No loader — present immediately
+
+        // MARK: Ad validity
+
+        guard isInterstitialAdValid else {
+            #if DEBUG
+            print("[InterstitialAd] ⚠️ Cached ad expired — discarding and reloading.")
+            #endif
+
+            clearAd()
+
+            Task { @MainActor [weak self] in
+                await self?.loadAd()
+            }
+
+            return
+        }
+
+        // MARK: Find current presenter
+
+        guard let presentingViewController = presentingViewController() else {
+            #if DEBUG
+            print("[InterstitialAd] ❌ Could not find presenting view controller.")
+            #endif
+            return
+        }
+
+        // MARK: Verify presentation
+
+        do {
+            try ad.canPresent(from: presentingViewController)
+        } catch {
+            #if DEBUG
+            print("[InterstitialAd] ❌ Ad cannot be presented: \(error.localizedDescription)")
+            #endif
+
+            clearAd()
+
+            Task { @MainActor [weak self] in
+                await self?.loadAd()
+            }
+
+            return
+        }
+
+        // MARK: Update state before presentation
+
+        isPresentingAd = true
         displayCounter = 0
         sessionLimitCounter += 1
         lastInterstitialShownAt = Date()
-        resetErrorCounter()
-        
-        ad.present(from: rootViewController)
+
+        // MARK: Present
+
+        #if DEBUG
+        print("[InterstitialAd] ✅ Presenting interstitial ad.")
+        #endif
+
+        ad.present(from: presentingViewController)
     }
     
     // MARK: - GADFullScreenContentDelegate
     
     public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+
         #if DEBUG
         print("[InterstitialAd] Dismissed")
         #endif
 
-        interstitialAd = nil
-        interstitialAdLoadTime = nil
-        Task {
-            await loadAd()
+        isPresentingAd = false
+        clearAd()
+
+        Task { @MainActor [weak self] in
+            await self?.loadAd()
         }
     }
     
-    public func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    public func ad(
+        _ ad: FullScreenPresentingAd,
+        didFailToPresentFullScreenContentWithError error: Error
+    ) {
+
         #if DEBUG
-        print("[InterstitialAd] Failed to present: \(error.localizedDescription)")
+        print("[InterstitialAd] ❌ Failed to present: \(error.localizedDescription)")
         #endif
 
-        interstitialAd = nil
-        interstitialAdLoadTime = nil
-        Task {
-            await loadAd()
+        isPresentingAd = false
+        clearAd()
+
+        Task { @MainActor [weak self] in
+            await self?.loadAd()
         }
     }
     

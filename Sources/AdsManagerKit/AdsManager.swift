@@ -20,7 +20,6 @@ public final class AdsManager: NSObject {
     ///     This does not affect App Open Ads shown when the app returns from the background.
     ///   - bannerAdEnabled: Enable Banner Ads
     ///   - interstitialAdEnabled: Enable Interstitial Ads
-    ///   - showLoadingIndicator: Shows a loading indicator while preparing an Interstitial Ad for presentation.
     ///   - nativeAdEnabled: Enable Native Ads
     ///   - openAdUnitId: Optional App Open Ad Unit ID (default uses placeholder/test ID)
     ///   - bannerAdUnitId: Optional Banner Ad Unit ID (default uses placeholder/test ID)
@@ -37,7 +36,6 @@ public final class AdsManager: NSObject {
         openAdOnSplashEnabled: Bool,
         bannerAdEnabled: Bool,
         interstitialAdEnabled: Bool,
-        showLoadingIndicator: Bool,
         nativeAdEnabled: Bool,
         openAdUnitId: String? = nil,
         bannerAdUnitId: String? = nil,
@@ -56,7 +54,6 @@ public final class AdsManager: NSObject {
         AdsConfig.openAdOnSplashEnabled = openAdOnSplashEnabled
         AdsConfig.bannerAdEnabled = bannerAdEnabled
         AdsConfig.interstitialAdEnabled = interstitialAdEnabled
-        AdsConfig.showLoadingIndicator = showLoadingIndicator
         AdsConfig.nativeAdEnabled = nativeAdEnabled
         
         AdsConfig.openAdUnitId = openAdUnitId ?? "ca-app-pub-3940256099942544/5575463023"
