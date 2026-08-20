@@ -47,15 +47,17 @@ final class BannerAdManager: NSObject {
         return !canRetry
     }
     
-    func loadBannerAd(in containerView: UIView,
-                      vc: UIViewController,
-                      type: BannerAdType,
-                      completion: @escaping (Bool, CGFloat) -> Void) {
+    func loadBannerAd(
+        in containerView: UIView,
+        vc: UIViewController,
+        type: BannerAdType,
+        completion: @escaping (Bool, CGFloat) -> Void
+    ) {
         guard AdsConfig.bannerAdEnabled else {
             completion(false, 0)
             return
         }
-        
+
         guard !hasExceededErrorLimit() else {
             #if DEBUG
             print("[BannerAd] ⚠️ Max retries exceeded — not loading or showing.")
@@ -64,36 +66,49 @@ final class BannerAdManager: NSObject {
             return
         }
 
-        self.completionHandler = completion
-
         containerView.layoutIfNeeded()
-        
+
         let viewWidth = containerView.bounds.width
 
         guard viewWidth > 0 else {
-            completionHandler = nil
             completion(false, 0)
             return
         }
-        
+
         let adSize: AdSize
-        
+
         switch type {
         case .regular:
             adSize = AdSizeBanner
-            
+
         case .large:
             adSize = AdSizeLargeBanner
-            
+
         case .largeAdaptive:
             adSize = largeAnchoredAdaptiveBanner(width: viewWidth)
         }
-        
+
         bannerHeight = adSize.size.height
+
+        // Show shimmer while banner is loading
+        let shimmerView = AdShimmerView()
+        shimmerView.show(
+            in: containerView,
+            height: bannerHeight
+        )
+
+        // Remove previous banner
         removeCurrentBanner()
+
+        // Store completion and remove shimmer when loading finishes
+        self.completionHandler = { success, height in
+            shimmerView.remove()
+            completion(success, height)
+        }
+
         let banner = BannerView(adSize: adSize)
         bannerView = banner
-        
+
         banner.adUnitID = AdsConfig.bannerAdUnitId
         banner.rootViewController = vc
         banner.delegate = self
@@ -103,8 +118,12 @@ final class BannerAdManager: NSObject {
         containerView.clipsToBounds = true
 
         NSLayoutConstraint.activate([
-            banner.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor),
-            banner.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)
+            banner.bottomAnchor.constraint(
+                equalTo: containerView.safeAreaLayoutGuide.bottomAnchor
+            ),
+            banner.centerXAnchor.constraint(
+                equalTo: containerView.centerXAnchor
+            )
         ])
 
         banner.load(Request())

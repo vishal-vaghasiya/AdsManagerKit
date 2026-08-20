@@ -59,10 +59,6 @@ final class NativeAdManager: NSObject {
         return !canRetry
     }
     
-    private func createAdRequest() -> Request {
-        return Request() // Latest UMP SDK automatically handles ATT/GDPR
-    }
-    
     // MARK: - Get Ad (Always Load On Demand)
     func getAd(in containerView: UIView, viewController: UIViewController, adType: AdType, completion: @escaping (Bool, CGFloat) -> Void) {
         // Show shimmer while native ad is loading
@@ -109,7 +105,7 @@ final class NativeAdManager: NSObject {
         
         completionHandlers[adLoader] = completion
         adLoader.delegate = self
-        adLoader.load(createAdRequest())
+        adLoader.load(Request())
     }
     
     /// Displays a Google Mobile Ads native ad inside the specified container view.
