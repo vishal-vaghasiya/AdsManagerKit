@@ -211,6 +211,16 @@ public final class AdsManager: NSObject {
         return viewController
     }
     
+    // MARK: - AppOpen Ad
+    public func tryToPresentSplashAd(delegate: AppOpenAdDelegate? = nil) {
+        AppOpenAdManager.shared.delegate = delegate
+        AppOpenAdManager.shared.tryToPresentSplashAd()
+    }
+    
+    public func showAppOpenAdIfAvailable() {
+        AppOpenAdManager.shared.tryToPresentAd()
+    }
+    
     // MARK: - Interstitial Ad
     public func loadInterstitial() {
         Task { @MainActor in

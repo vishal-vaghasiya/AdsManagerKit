@@ -1,7 +1,8 @@
 import UIKit
 import AdsManagerKit
 
-class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
+class SplashViewController: UIViewController, AppOpenAdDelegate {
+    
     // MARK: - OUTLET
     @IBOutlet weak var splashScreenLabel: UILabel!
     
@@ -10,7 +11,6 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
     // MARK: - LIFE CYCLE
     override func viewDidLoad() {
         super.viewDidLoad()
-        AppOpenAdManager.shared.delegate = self
         setupSplash()
         setupAds()
     }
@@ -24,8 +24,8 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
         #endif
         
         AdsManager.configureAds(isProduction: isProduction,
-                                openAdEnabled: false,
-                                openAdOnSplashEnabled: false,
+                                openAdEnabled: true,
+                                openAdOnSplashEnabled: true,
                                 bannerAdEnabled: true,
                                 interstitialAdEnabled: false,
                                 nativeAdEnabled: true,
@@ -41,24 +41,20 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
     private func setupAds() {
         AdsManager.configure { [weak self] in
             guard self != nil else { return }
-            AppOpenAdManager.shared.tryToPresentSplashAd()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: {
+                AdsManager.shared.tryToPresentSplashAd(delegate: self)
+            })
         }
     }
     
     private func startMainScreen() {
-        AppOpenAdManager.shared.delegate = nil
-        
         let mainStoryBoard = UIStoryboard(name: "Main", bundle: nil)
         let navigationController = mainStoryBoard.instantiateViewController(
             withIdentifier: "NavigationController")
-        present(navigationController, animated: true) {
-            self.dismiss(animated: false) {
-                // Find the keyWindow which is currently being displayed on the device,
-                // and set its rootViewController to mainViewController.
-                let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
-                keyWindow?.rootViewController = navigationController
-            }
-        }
+        // Find the keyWindow which is currently being displayed on the device,
+        // and set its rootViewController to mainViewController.
+        let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
+        keyWindow?.rootViewController = navigationController
     }
     
     // MARK: - BUTTON CLICK
@@ -66,7 +62,7 @@ class SplashViewController: UIViewController, AppOpenAdManagerDelegate {
     // MARK: - OTHER
     
     // MARK: - DELEGATE
-    func appOpenAdManagerDidComplete(_ manager: AdsManagerKit.AppOpenAdManager) {
+    func appOpenAdDidComplete() {
         startMainScreen()
     }
 }

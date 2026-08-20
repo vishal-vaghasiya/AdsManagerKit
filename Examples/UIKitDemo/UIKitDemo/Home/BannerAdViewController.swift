@@ -1,7 +1,7 @@
 import UIKit
 import AdsManager
 
-class BannerAdVC: UIViewController {
+class BannerAdViewController: UIViewController {
     @IBOutlet weak var bannerView: UIView!
     @IBOutlet weak var conBannerHeight: NSLayoutConstraint!
     override func viewDidLoad() {

@@ -1,7 +1,7 @@
 import UIKit
 import AdsManager
 import GoogleMobileAds
-class NativeAdVC: UIViewController {
+class NativeAdViewController: UIViewController {
     @IBOutlet weak var containerView: UIView!
     @IBOutlet weak var conContainerViewHeight: NSLayoutConstraint!
     override func viewDidLoad() {

@@ -74,39 +74,33 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="W3C-50-IiS">
-                                <rect key="frame" x="134.66666666666666" y="335" width="123.66666666666666" height="182.33333333333337"/>
+                                <rect key="frame" x="125.66666666666667" y="335" width="141.66666666666663" height="182.33333333333337"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Tpg-Mr-vJ9">
-                                        <rect key="frame" x="0.0" y="0.0" width="123.66666666666667" height="34.333333333333336"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="141.66666666666666" height="34.333333333333336"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Open Ad"/>
-                                        <connections>
-                                            <action selector="openAdButtonClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ijA-cn-DPb"/>
-                                        </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aQE-jp-gXq">
-                                        <rect key="frame" x="0.0" y="49.333333333333314" width="123.66666666666667" height="34.333333333333343"/>
+                                        <rect key="frame" x="0.0" y="49.333333333333314" width="141.66666666666666" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Banner Ad"/>
                                         <connections>
                                             <action selector="bannerAdButtonClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="8F5-7b-aPz"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FTV-jn-04u">
-                                        <rect key="frame" x="0.0" y="98.666666666666686" width="123.66666666666667" height="34.333333333333343"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="gray" title="Interstitial Ad"/>
-                                        <connections>
-                                            <action selector="interstitialAdButtonClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="8jV-0s-YR1"/>
-                                        </connections>
-                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8Mr-Nb-Dr0">
-                                        <rect key="frame" x="0.0" y="148" width="123.66666666666667" height="34.333333333333343"/>
+                                        <rect key="frame" x="0.0" y="98.666666666666686" width="141.66666666666666" height="34.333333333333343"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="gray" title="Native Ad"/>
                                         <connections>
                                             <action selector="nativeAdButtonClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="FST-hA-756"/>
                                         </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FTV-jn-04u">
+                                        <rect key="frame" x="0.0" y="148" width="141.66666666666666" height="34.333333333333343"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="gray" title="Inline Native Ad"/>
                                     </button>
                                 </subviews>
                             </stackView>
@@ -124,10 +118,10 @@
             </objects>
             <point key="canvasLocation" x="1066.4122137404579" y="104.92957746478874"/>
         </scene>
-        <!--Banner AdVC-->
+        <!--Banner Ad View Controller-->
         <scene sceneID="dI7-Av-16Y">
             <objects>
-                <viewController storyboardIdentifier="BannerAdVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="w1O-Z5-exd" customClass="BannerAdVC" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="BannerAdViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="w1O-Z5-exd" customClass="BannerAdViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="A7P-Eu-ibq">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -156,47 +150,31 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="a50-6d-663" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1845" y="105"/>
+            <point key="canvasLocation" x="1857" y="-592"/>
         </scene>
-        <!--Native AdVC-->
+        <!--Native Ad View Controller-->
         <scene sceneID="5Ae-vM-qZT">
             <objects>
-                <viewController storyboardIdentifier="NativeAdVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="iUd-A5-93w" customClass="NativeAdVC" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="NativeAdViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="iUd-A5-93w" customClass="NativeAdViewController" customModule="UIKitDemo" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="b5l-Sy-lCR">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2aN-UB-DAo">
-                                <rect key="frame" x="138" y="138" width="117" height="34.333333333333343"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="34.329999999999998" id="tOv-Dw-mRE"/>
-                                </constraints>
-                                <buttonConfiguration key="configuration" style="gray" title="Inline Native"/>
-                                <connections>
-                                    <action selector="inlineNativeClick:" destination="iUd-A5-93w" eventType="touchUpInside" id="l6M-Yw-W4V"/>
-                                </connections>
-                            </button>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="S8F-kE-2hc">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cnA-qX-zdN">
                                 <rect key="frame" x="0.0" y="373.66666666666669" width="393" height="105"/>
-                                <subviews>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cnA-qX-zdN">
-                                        <rect key="frame" x="0.0" y="0.0" width="393" height="105"/>
-                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="105" id="8Nm-0Y-JMv"/>
-                                        </constraints>
-                                    </view>
-                                </subviews>
-                            </stackView>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="105" id="8Nm-0Y-JMv"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="vTt-z1-kjf"/>
                         <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="2aN-UB-DAo" firstAttribute="centerX" secondItem="b5l-Sy-lCR" secondAttribute="centerX" id="bK3-RP-mVs"/>
-                            <constraint firstItem="S8F-kE-2hc" firstAttribute="leading" secondItem="vTt-z1-kjf" secondAttribute="leading" id="fd7-c1-EYS"/>
-                            <constraint firstItem="2aN-UB-DAo" firstAttribute="top" secondItem="vTt-z1-kjf" secondAttribute="top" constant="20" id="hJl-wM-vDU"/>
-                            <constraint firstItem="S8F-kE-2hc" firstAttribute="trailing" secondItem="vTt-z1-kjf" secondAttribute="trailing" id="rhw-fW-Wco"/>
-                            <constraint firstItem="S8F-kE-2hc" firstAttribute="centerY" secondItem="b5l-Sy-lCR" secondAttribute="centerY" id="w0e-H0-RK3"/>
+                            <constraint firstItem="cnA-qX-zdN" firstAttribute="leading" secondItem="vTt-z1-kjf" secondAttribute="leading" id="HrP-b9-sv8"/>
+                            <constraint firstItem="cnA-qX-zdN" firstAttribute="trailing" secondItem="vTt-z1-kjf" secondAttribute="trailing" id="YwF-Py-scK"/>
+                            <constraint firstItem="cnA-qX-zdN" firstAttribute="centerY" secondItem="b5l-Sy-lCR" secondAttribute="centerY" id="ojT-2V-9T8"/>
+                            <constraint firstItem="cnA-qX-zdN" firstAttribute="centerX" secondItem="b5l-Sy-lCR" secondAttribute="centerX" id="r2V-4v-awj"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="47A-WR-X1b"/>
@@ -207,7 +185,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="o7w-42-Uvl" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2546" y="105"/>
+            <point key="canvasLocation" x="1856" y="87"/>
         </scene>
         <!--Feed View Controller-->
         <scene sceneID="JjP-k3-MiJ">
@@ -238,7 +216,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6pf-jC-465" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3322.9007633587785" y="104.92957746478874"/>
+            <point key="canvasLocation" x="1885" y="799"/>
         </scene>
     </scenes>
     <resources>

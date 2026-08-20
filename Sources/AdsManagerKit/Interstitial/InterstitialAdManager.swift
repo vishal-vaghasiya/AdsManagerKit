@@ -4,7 +4,7 @@ import UserMessagingPlatform
 import UIKit
 
 @MainActor
-public final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
+final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
     
     public static let shared = InterstitialAdManager()
     

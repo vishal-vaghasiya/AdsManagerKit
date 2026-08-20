@@ -24,7 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard didEnterBackground else { return }
         
         didEnterBackground = false
-        AppOpenAdManager.shared.tryToPresentAd()
+        AdsManager.shared.showAppOpenAdIfAvailable()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {

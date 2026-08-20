@@ -7,43 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0F28B2DA3036D7EF00101E9A /* NativeAdView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0F28B2D33036D7EF00101E9A /* NativeAdView.xib */; };
-		0F28B2E9303704DC00101E9A /* FeedCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E4303704DC00101E9A /* FeedCell.swift */; };
-		0F28B2EA303704DC00101E9A /* FeedItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E5303704DC00101E9A /* FeedItem.swift */; };
-		0F28B2EB303704DC00101E9A /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E6303704DC00101E9A /* FeedViewController.swift */; };
-		0F28B2EC303704DC00101E9A /* NativeAdTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */; };
 		0F8F479D2ECD787800D658FC /* AdsManager in Frameworks */ = {isa = PBXBuildFile; productRef = 0F8F479C2ECD787800D658FC /* AdsManager */; };
-		0F8F48432ECD888400D658FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F48362ECD888400D658FC /* Assets.xcassets */; };
-		0F8F48452ECD888400D658FC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */; };
-		0F8F48462ECD888400D658FC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0F8F483C2ECD888400D658FC /* Main.storyboard */; };
-		0F8F48472ECD888400D658FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48352ECD888400D658FC /* AppDelegate.swift */; };
-		0F8F48482ECD888400D658FC /* BannerAdVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48372ECD888400D658FC /* BannerAdVC.swift */; };
-		0F8F48492ECD888400D658FC /* NativeAdVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483D2ECD888400D658FC /* NativeAdVC.swift */; };
-		0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483E2ECD888400D658FC /* SceneDelegate.swift */; };
-		0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */; };
-		0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F8F48402ECD888400D658FC /* MainViewController.swift */; };
-		D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3843190302A3DD40011AE29 /* SplashViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0F28B2D33036D7EF00101E9A /* NativeAdView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NativeAdView.xib; sourceTree = "<group>"; };
-		0F28B2E4303704DC00101E9A /* FeedCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCell.swift; sourceTree = "<group>"; };
-		0F28B2E5303704DC00101E9A /* FeedItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItem.swift; sourceTree = "<group>"; };
-		0F28B2E6303704DC00101E9A /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewController.swift; sourceTree = "<group>"; };
-		0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdTableViewCell.swift; sourceTree = "<group>"; };
 		0F8153252ECC488D0002EA0B /* UIKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UIKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		0F8F48352ECD888400D658FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		0F8F48362ECD888400D658FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		0F8F48372ECD888400D658FC /* BannerAdVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdVC.swift; sourceTree = "<group>"; };
-		0F8F48382ECD888400D658FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		0F8F48392ECD888400D658FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		0F8F483B2ECD888400D658FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		0F8F483D2ECD888400D658FC /* NativeAdVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdVC.swift; sourceTree = "<group>"; };
-		0F8F483E2ECD888400D658FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		0F8F48402ECD888400D658FC /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
-		0F8F48422ECD888400D658FC /* UIKitDemo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = UIKitDemo.xcdatamodel; sourceTree = "<group>"; };
-		D3843190302A3DD40011AE29 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0F28B36030370B9000101E9A /* Exceptions for "UIKitDemo" folder in "UIKitDemo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+			);
+			target = 0F8153242ECC488D0002EA0B /* UIKitDemo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0F28B34E30370B8C00101E9A /* UIKitDemo */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0F28B36030370B9000101E9A /* Exceptions for "UIKitDemo" folder in "UIKitDemo" target */,
+			);
+			path = UIKitDemo;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		0F8153222ECC488D0002EA0B /* Frameworks */ = {
@@ -57,29 +47,10 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0F28B2D73036D7EF00101E9A /* NativeAds */ = {
-			isa = PBXGroup;
-			children = (
-				0F28B2D33036D7EF00101E9A /* NativeAdView.xib */,
-			);
-			path = NativeAds;
-			sourceTree = "<group>";
-		};
-		0F28B2E8303704DC00101E9A /* InlineNative */ = {
-			isa = PBXGroup;
-			children = (
-				0F28B2E4303704DC00101E9A /* FeedCell.swift */,
-				0F28B2E5303704DC00101E9A /* FeedItem.swift */,
-				0F28B2E6303704DC00101E9A /* FeedViewController.swift */,
-				0F28B2E7303704DC00101E9A /* NativeAdTableViewCell.swift */,
-			);
-			path = InlineNative;
-			sourceTree = "<group>";
-		};
 		0F81531C2ECC488D0002EA0B = {
 			isa = PBXGroup;
 			children = (
-				0F8F48412ECD888400D658FC /* UIKitDemo */,
+				0F28B34E30370B8C00101E9A /* UIKitDemo */,
 				0F8153262ECC488D0002EA0B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,26 +61,6 @@
 				0F8153252ECC488D0002EA0B /* UIKitDemo.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		0F8F48412ECD888400D658FC /* UIKitDemo */ = {
-			isa = PBXGroup;
-			children = (
-				0F8F48352ECD888400D658FC /* AppDelegate.swift */,
-				0F8F483E2ECD888400D658FC /* SceneDelegate.swift */,
-				0F8F48362ECD888400D658FC /* Assets.xcassets */,
-				0F8F48382ECD888400D658FC /* Info.plist */,
-				0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */,
-				0F8F483C2ECD888400D658FC /* Main.storyboard */,
-				D3843190302A3DD40011AE29 /* SplashViewController.swift */,
-				0F8F48402ECD888400D658FC /* MainViewController.swift */,
-				0F8F48372ECD888400D658FC /* BannerAdVC.swift */,
-				0F8F483D2ECD888400D658FC /* NativeAdVC.swift */,
-				0F28B2E8303704DC00101E9A /* InlineNative */,
-				0F28B2D73036D7EF00101E9A /* NativeAds */,
-				0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */,
-			);
-			path = UIKitDemo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -126,6 +77,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0F28B34E30370B8C00101E9A /* UIKitDemo */,
 			);
 			name = UIKitDemo;
 			packageProductDependencies = (
@@ -177,10 +131,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0F8F48432ECD888400D658FC /* Assets.xcassets in Resources */,
-				0F8F48452ECD888400D658FC /* LaunchScreen.storyboard in Resources */,
-				0F8F48462ECD888400D658FC /* Main.storyboard in Resources */,
-				0F28B2DA3036D7EF00101E9A /* NativeAdView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,40 +141,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0F8F48472ECD888400D658FC /* AppDelegate.swift in Sources */,
-				0F8F48482ECD888400D658FC /* BannerAdVC.swift in Sources */,
-				0F8F48492ECD888400D658FC /* NativeAdVC.swift in Sources */,
-				0F8F484A2ECD888400D658FC /* SceneDelegate.swift in Sources */,
-				0F28B2E9303704DC00101E9A /* FeedCell.swift in Sources */,
-				0F28B2EA303704DC00101E9A /* FeedItem.swift in Sources */,
-				0F28B2EB303704DC00101E9A /* FeedViewController.swift in Sources */,
-				0F28B2EC303704DC00101E9A /* NativeAdTableViewCell.swift in Sources */,
-				0F8F484B2ECD888400D658FC /* UIKitDemo.xcdatamodeld in Sources */,
-				0F8F484C2ECD888400D658FC /* MainViewController.swift in Sources */,
-				D3843191302A3DD40011AE29 /* SplashViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		0F8F483A2ECD888400D658FC /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				0F8F48392ECD888400D658FC /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-		0F8F483C2ECD888400D658FC /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				0F8F483B2ECD888400D658FC /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		0F81533C2ECC488F0002EA0B /* Debug */ = {
@@ -236,7 +156,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 74Y4KWJ85L;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = UIKitDemo/Info.plist;
+				INFOPLIST_FILE = UIKitDemo/Resources/Info.plist;
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -270,7 +190,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 74Y4KWJ85L;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = UIKitDemo/Info.plist;
+				INFOPLIST_FILE = UIKitDemo/Resources/Info.plist;
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "This identifier will be used to deliver personalized ads to you.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -452,19 +372,6 @@
 			productName = AdsManager;
 		};
 /* End XCSwiftPackageProductDependency section */
-
-/* Begin XCVersionGroup section */
-		0F8F483F2ECD888400D658FC /* UIKitDemo.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				0F8F48422ECD888400D658FC /* UIKitDemo.xcdatamodel */,
-			);
-			currentVersion = 0F8F48422ECD888400D658FC /* UIKitDemo.xcdatamodel */;
-			path = UIKitDemo.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 0F81531D2ECC488D0002EA0B /* Project object */;
 }

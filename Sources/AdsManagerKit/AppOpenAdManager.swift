@@ -4,19 +4,19 @@ import UIKit
 
 // MARK: - AppOpenAdManagerDelegate
 @MainActor
-public protocol AppOpenAdManagerDelegate: AnyObject {
-    func appOpenAdManagerDidComplete(_ manager: AppOpenAdManager)
+public protocol AppOpenAdDelegate: AnyObject {
+    func appOpenAdDidComplete()
 }
 
 // MARK: - AppOpenAdManager
 @MainActor
 // [START app_open_ad_manager]
-public final class AppOpenAdManager: NSObject {
+final class AppOpenAdManager: NSObject {
     // The app open ad.
     private var appOpenAd: AppOpenAd?
     
     /// Delegate for App Open Ad events.
-    public weak var delegate: AppOpenAdManagerDelegate?
+    weak var delegate: AppOpenAdDelegate?
     
     /// Keeps track of if an app open ad is loading.
     private var isLoadingAd = false
@@ -29,7 +29,7 @@ public final class AppOpenAdManager: NSObject {
     
     private let adValidityDuration: TimeInterval = 4 * 3_600
     
-    public static let shared = AppOpenAdManager()
+    static let shared = AppOpenAdManager()
     
     // MARK: - Private Methods
     
@@ -97,7 +97,7 @@ public final class AppOpenAdManager: NSObject {
         isLoadingAd = false
     }
     
-    public func tryToPresentAd() {
+    func tryToPresentAd() {
         // If the app open ad is already showing, do not show the ad again.
         if isShowingAd {
             #if DEBUG
@@ -114,7 +114,7 @@ public final class AppOpenAdManager: NSObject {
             #endif
             
             // The app open ad is considered to be complete in this example.
-            delegate?.appOpenAdManagerDidComplete(self)
+            delegate?.appOpenAdDidComplete()
             
             // [START_EXCLUDE silent]
             Task {
@@ -138,11 +138,11 @@ public final class AppOpenAdManager: NSObject {
         }
     }
     
-    public func tryToPresentSplashAd() {
+    func tryToPresentSplashAd() {
         guard AdsConfig.openAdEnabled,
               AdsConfig.openAdOnSplashEnabled else {
             // The app open ad is considered to be complete in this example.
-            delegate?.appOpenAdManagerDidComplete(self)
+            delegate?.appOpenAdDidComplete()
             return
         }
         tryToPresentAd()
@@ -153,31 +153,31 @@ public final class AppOpenAdManager: NSObject {
 
 extension AppOpenAdManager: FullScreenContentDelegate {
     // [START ad_events]
-    public func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] recorded an impression")
         #endif
     }
 
-    public func adDidRecordClick(_ ad: FullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] recorded a click")
         #endif
     }
 
-    public func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+    func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] will be dismissed")
         #endif
     }
     
-    public func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] Will present")
         #endif
     }
     
-    public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         #if DEBUG
         print("[AppOpenAd] dismissed")
         #endif
@@ -185,7 +185,7 @@ extension AppOpenAdManager: FullScreenContentDelegate {
         appOpenAd = nil
         isShowingAd = false
         
-        delegate?.appOpenAdManagerDidComplete(self)
+        delegate?.appOpenAdDidComplete()
         
         // Preload the next App Open Ad.
         Task {
@@ -204,7 +204,7 @@ extension AppOpenAdManager: FullScreenContentDelegate {
         appOpenAd = nil
         isShowingAd = false
         
-        delegate?.appOpenAdManagerDidComplete(self)
+        delegate?.appOpenAdDidComplete()
         
         // Preload the next App Open Ad.
         Task {
