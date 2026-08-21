@@ -103,3 +103,24 @@ final class AdShimmerView: UIView {
         )
     }
 }
+
+// MARK: - SwiftUI Representable
+import SwiftUI
+
+public struct AdShimmerViewRepresentable: UIViewRepresentable {
+    public let height: CGFloat
+
+    public init(height: CGFloat = 60) {
+        self.height = height
+    }
+
+    public func makeUIView(context: Context) -> UIView {
+        let container = UIView()
+        container.backgroundColor = .clear
+        let shimmer = AdShimmerView()
+        shimmer.show(in: container, height: height)
+        return container
+    }
+
+    public func updateUIView(_ uiView: UIView, context: Context) {}
+}

@@ -5,19 +5,95 @@ import GoogleMobileAds
 public final class InlineBannerContainerView: UIView {
 
     var adIndex: Int = 0
+    var onAdLoaded: ((CGFloat) -> Void)?
+    var onAdFailed: ((Error) -> Void)?
 
     private var didStartLoading = false
-    private var bannerView: BannerView?
+    private(set) var bannerView: BannerView?
+    private var shimmerView: AdShimmerView?
+
+    public override var intrinsicContentSize: CGSize {
+        if let bannerView = bannerView {
+            return CGSize(width: UIView.noIntrinsicMetric, height: bannerView.adSize.size.height)
+        }
+        if didStartLoading && bannerView == nil {
+            return CGSize(width: UIView.noIntrinsicMetric, height: 60)
+        }
+        return CGSize(width: UIView.noIntrinsicMetric, height: 0)
+    }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
 
-        loadAdIfNeeded()
+        if bannerView == nil {
+            loadAdIfNeeded()
+        }
+    }
+
+    public func setBannerView(_ banner: BannerView) {
+        hideShimmer()
+
+        if self.bannerView == banner && banner.superview == self {
+            return
+        }
+
+        // If the banner belonged to another container previously, unbind it from that container
+        if let previousContainer = banner.superview as? InlineBannerContainerView, previousContainer != self {
+            previousContainer.bannerView = nil
+        }
+
+        if self.bannerView != banner {
+            if self.bannerView?.superview == self {
+                self.bannerView?.removeFromSuperview()
+            }
+        }
+        self.bannerView = banner
+
+        if banner.superview != self {
+            banner.removeFromSuperview()
+            banner.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(banner)
+
+            NSLayoutConstraint.activate([
+                banner.topAnchor.constraint(equalTo: topAnchor),
+                banner.leadingAnchor.constraint(equalTo: leadingAnchor),
+                banner.trailingAnchor.constraint(equalTo: trailingAnchor),
+                banner.bottomAnchor.constraint(equalTo: bottomAnchor),
+                banner.heightAnchor.constraint(equalToConstant: banner.adSize.size.height)
+            ])
+        }
+
+        invalidateIntrinsicContentSize()
+        setNeedsLayout()
+
+        onAdLoaded?(banner.adSize.size.height)
+    }
+
+    public func clearBanner() {
+        hideShimmer()
+        if bannerView?.superview == self {
+            bannerView?.removeFromSuperview()
+        }
+        bannerView = nil
+        invalidateIntrinsicContentSize()
+    }
+
+    private func showShimmer() {
+        hideShimmer()
+        let shimmer = AdShimmerView()
+        self.shimmerView = shimmer
+        shimmer.show(in: self, height: 60)
+        invalidateIntrinsicContentSize()
+    }
+
+    private func hideShimmer() {
+        shimmerView?.remove()
+        shimmerView = nil
+        invalidateIntrinsicContentSize()
     }
 
     func loadAdIfNeeded() {
-
-        guard !didStartLoading else {
+        guard bannerView == nil, !didStartLoading else {
             return
         }
 
@@ -25,12 +101,12 @@ public final class InlineBannerContainerView: UIView {
             return
         }
 
-        guard let viewController =
-                findViewController() else {
+        guard let viewController = findViewController() else {
             return
         }
 
         didStartLoading = true
+        showShimmer()
 
         InlineBannerAdManager.shared.loadBannerAds(
             count: 1,
@@ -42,37 +118,19 @@ public final class InlineBannerContainerView: UIView {
                 return
             }
 
-            guard let banner = banners.first else {
-                return
-            }
-
             DispatchQueue.main.async {
-
-                self.bannerView?.removeFromSuperview()
-
-                self.bannerView = banner
-
-                banner.translatesAutoresizingMaskIntoConstraints = false
-
-                self.addSubview(banner)
-
-                NSLayoutConstraint.activate([
-                    banner.topAnchor.constraint(
-                        equalTo: self.topAnchor
-                    ),
-
-                    banner.leadingAnchor.constraint(
-                        equalTo: self.leadingAnchor
-                    ),
-
-                    banner.trailingAnchor.constraint(
-                        equalTo: self.trailingAnchor
-                    ),
-
-                    banner.heightAnchor.constraint(
-                        equalToConstant: banner.adSize.size.height
+                self.hideShimmer()
+                if let banner = banners.first {
+                    self.setBannerView(banner)
+                } else {
+                    self.clearBanner()
+                    let error = NSError(
+                        domain: "InlineBannerContainerView",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to load inline banner ad"]
                     )
-                ])
+                    self.onAdFailed?(error)
+                }
             }
         }
     }
@@ -80,17 +138,12 @@ public final class InlineBannerContainerView: UIView {
     // MARK: - Find View Controller
 
     private func findViewController() -> UIViewController? {
-
         var responder: UIResponder? = self
 
         while let current = responder {
-
-            if let viewController =
-                current as? UIViewController {
-
+            if let viewController = current as? UIViewController {
                 return viewController
             }
-
             responder = current.next
         }
 
@@ -100,7 +153,15 @@ public final class InlineBannerContainerView: UIView {
     // MARK: - Cleanup
 
     deinit {
-        bannerView?.removeFromSuperview()
-        bannerView = nil
+        let banner = bannerView
+        let shimmer = shimmerView
+        if banner != nil || shimmer != nil {
+            Task { @MainActor in
+                shimmer?.remove()
+                if banner?.superview != nil {
+                    banner?.removeFromSuperview()
+                }
+            }
+        }
     }
 }

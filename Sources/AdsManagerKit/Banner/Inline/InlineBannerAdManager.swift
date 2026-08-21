@@ -35,6 +35,9 @@ public final class InlineBannerAdManager: NSObject {
 
     private var completion: (([BannerView]) -> Void)?
 
+    private var onAdLoadedHandler: ((BannerView, Int, CGFloat) -> Void)?
+    private var onAdFailedHandler: ((Int, Error) -> Void)?
+
     private weak var rootViewController: UIViewController?
 
     private var currentWidth: CGFloat = 0
@@ -62,8 +65,15 @@ public final class InlineBannerAdManager: NSObject {
     ///
     /// Only one banner request is active at a time.
     /// Each successfully loaded banner is returned immediately
-    /// through `InlineBannerAdLoaderOutput`.
-    public func loadBannerAds(count: Int, rootViewController: UIViewController, width: CGFloat, completion: @escaping ([BannerView]) -> Void) {
+    /// through `InlineBannerAdLoaderOutput` and/or `onAdLoaded`.
+    public func loadBannerAds(
+        count: Int,
+        rootViewController: UIViewController,
+        width: CGFloat,
+        onAdLoaded: ((BannerView, Int, CGFloat) -> Void)? = nil,
+        onAdFailed: ((Int, Error) -> Void)? = nil,
+        completion: @escaping ([BannerView]) -> Void
+    ) {
         guard AdsConfig.bannerAdEnabled, count > 0, width > 0 else {
             completion([])
             return
@@ -78,10 +88,14 @@ public final class InlineBannerAdManager: NSObject {
         bannerIndexes.removeAll()
 
         self.completion = completion
+        self.onAdLoadedHandler = onAdLoaded
+        self.onAdFailedHandler = onAdFailed
         self.rootViewController = rootViewController
         self.currentWidth = width
 
-        self.output = rootViewController as? InlineBannerAdLoaderOutput
+        if self.output == nil {
+            self.output = rootViewController as? InlineBannerAdLoaderOutput
+        }
 
         resetErrorCounter()
 
@@ -97,9 +111,23 @@ public final class InlineBannerAdManager: NSObject {
     }
 
     /// Reloads the requested number of banners.
-    public func reloadBannerAds(count: Int, rootViewController: UIViewController, width: CGFloat, completion: @escaping ([BannerView]) -> Void) {
+    public func reloadBannerAds(
+        count: Int,
+        rootViewController: UIViewController,
+        width: CGFloat,
+        onAdLoaded: ((BannerView, Int, CGFloat) -> Void)? = nil,
+        onAdFailed: ((Int, Error) -> Void)? = nil,
+        completion: @escaping ([BannerView]) -> Void
+    ) {
         reset()
-        loadBannerAds(count: count, rootViewController: rootViewController, width: width, completion: completion)
+        loadBannerAds(
+            count: count,
+            rootViewController: rootViewController,
+            width: width,
+            onAdLoaded: onAdLoaded,
+            onAdFailed: onAdFailed,
+            completion: completion
+        )
     }
 
     /// Cancels the current loading session and clears all state.
@@ -115,6 +143,8 @@ public final class InlineBannerAdManager: NSObject {
         bannerIndexes.removeAll()
 
         completion = nil
+        onAdLoadedHandler = nil
+        onAdFailedHandler = nil
         rootViewController = nil
         output = nil
 
@@ -229,6 +259,8 @@ public final class InlineBannerAdManager: NSObject {
         let completion = self.completion
 
         self.completion = nil
+        self.onAdLoadedHandler = nil
+        self.onAdFailedHandler = nil
         self.rootViewController = nil
         self.output = nil
 
@@ -275,6 +307,7 @@ extension InlineBannerAdManager: BannerViewDelegate {
 
             // Return the banner immediately.
             self.output?.inlineBannerAdLoader(self, didLoad: bannerView, at: index, height: height)
+            self.onAdLoadedHandler?(bannerView, index, height)
 
             // Check if all requested banners are loaded.
             guard self.loadedBanners.count < self.targetCount else {
@@ -309,6 +342,7 @@ extension InlineBannerAdManager: BannerViewDelegate {
 
             // Notify the consumer immediately.
             self.output?.inlineBannerAdLoader(self, didFailWith: error, at: index)
+            self.onAdFailedHandler?(index, error)
 
             // Continue loading the next banner.
             guard self.loadedBanners.count < self.targetCount else {
