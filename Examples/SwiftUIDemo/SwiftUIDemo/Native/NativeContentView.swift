@@ -1,16 +1,7 @@
-//
-//  ContentView.swift
-//  SwiftUIDemo
-//
-//
-
 import AdsManagerKit
 import SwiftUI
 import GoogleMobileAds
-struct ContentView: View {
-    @State private var bannerIsLoaded = false
-    @State private var bannerHeight: CGFloat = 0
-
+struct NativeContentView: View {
     @State private var nativeIsLoaded = false
     @State private var nativeHeight: CGFloat = 300
     private let nativeAdView: NativeAdView = {
@@ -23,32 +14,21 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Button("Show Interstitial") {
-                AdsManager.shared.showInterstitialIfAvailable()
-            }
             Spacer()
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            /*BannerAdView(
-                adType: .regular,
-                isLoaded: $bannerIsLoaded,
-                height: $bannerHeight
-            )
-            .frame(height: bannerHeight)
-            .opacity(bannerIsLoaded ? 1 : 0)*/
-            
-            /*NativeAdContainerView(
+            NativeAdContainerView(
                 adView: nativeAdView,
                 height: nativeHeight,
                 isLoaded: $nativeIsLoaded,
                 resolvedHeight: $nativeHeight
             )
             .frame(height: nativeHeight)
-            .opacity(nativeIsLoaded ? 1 : 0)*/
+            .opacity(nativeIsLoaded ? 1 : 0)
         }
     }
 }
 
 #Preview {
-    ContentView()
+    NativeContentView()
 }

@@ -209,7 +209,12 @@ public struct BannerAdView: UIViewRepresentable {
     @Binding private var isLoaded: Bool
     @Binding private var height: CGFloat
 
-    public init(adType: BannerAdType, isLoaded: Binding<Bool> = .constant(false), height: Binding<CGFloat> = .constant(0), onAdLoaded: ((CGFloat) -> Void)? = nil) {
+    public init(
+        adType: BannerAdType,
+        isLoaded: Binding<Bool> = .constant(false),
+        height: Binding<CGFloat> = .constant(0),
+        onAdLoaded: ((CGFloat) -> Void)? = nil
+    ) {
         self.adType = adType
         self._isLoaded = isLoaded
         self._height = height
@@ -218,21 +223,53 @@ public struct BannerAdView: UIViewRepresentable {
 
     public func makeUIView(context: Context) -> UIView {
         let containerView = BannerContainerView()
+
         containerView.onLayout = {
             guard containerView.bounds.width > 0 else {
                 return
             }
 
+            // Show shimmer while loading
+            let shimmerView = AdShimmerView()
+
+            let shimmerHeight: CGFloat
+
+            switch adType {
+            case .regular:
+                shimmerHeight = AdSizeBanner.size.height
+
+            case .large:
+                shimmerHeight = AdSizeLargeBanner.size.height
+
+            case .largeAdaptive:
+                shimmerHeight = 100
+            }
+
+            shimmerView.show(
+                in: containerView,
+                height: shimmerHeight
+            )
+
             BannerAdManager.shared.makeBannerContainer(
                 in: containerView,
                 width: containerView.bounds.width,
                 adType: adType,
-                onAdLoaded: onAdLoaded,
-                onAdStateChanged: { loaded, resolvedHeight in
+                onAdLoaded: { loadedHeight in
+                    shimmerView.remove()
 
+                    onAdLoaded?(loadedHeight)
+                },
+                onAdStateChanged: { loaded, resolvedHeight in
                     DispatchQueue.main.async {
                         isLoaded = loaded
                         height = resolvedHeight
+
+                        // Remove shimmer on success or failure
+                        if loaded {
+                            shimmerView.remove()
+                        } else {
+                            shimmerView.remove()
+                        }
                     }
                 }
             )
@@ -241,7 +278,10 @@ public struct BannerAdView: UIViewRepresentable {
         return containerView
     }
 
-    public func updateUIView(_ uiView: UIView, context: Context) {
+    public func updateUIView(
+        _ uiView: UIView,
+        context: Context
+    ) {
         // Intentionally empty.
     }
 }

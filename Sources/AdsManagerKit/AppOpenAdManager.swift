@@ -8,6 +8,20 @@ public protocol AppOpenAdDelegate: AnyObject {
     func appOpenAdDidComplete()
 }
 
+// MARK: - Splash Ad Delegate
+@MainActor
+public final class SplashAdDelegate: AppOpenAdDelegate {
+    public var onComplete: (() -> Void)?
+
+    public init(onComplete: (() -> Void)? = nil) {
+        self.onComplete = onComplete
+    }
+
+    public func appOpenAdDidComplete() {
+        onComplete?()
+    }
+}
+
 // MARK: - AppOpenAdManager
 @MainActor
 // [START app_open_ad_manager]
