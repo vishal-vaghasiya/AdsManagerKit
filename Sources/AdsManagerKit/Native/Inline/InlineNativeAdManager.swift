@@ -28,6 +28,9 @@ public final class InlineNativeAdManager: NSObject {
     private var loadSessionID = UUID()
 
     private var completion: (([NativeAd]) -> Void)?
+    private var onAdLoadedHandler: ((NativeAd, Int) -> Void)?
+    private var onAdFailedHandler: ((Int, Error) -> Void)?
+
     private weak var rootViewController: UIViewController?
 
     private var currentNativeAdErrorCount: Int = 0
@@ -46,6 +49,8 @@ public final class InlineNativeAdManager: NSObject {
     public func loadNativeAds(
         count: Int,
         rootViewController: UIViewController,
+        onAdLoaded: ((NativeAd, Int) -> Void)? = nil,
+        onAdFailed: ((Int, Error) -> Void)? = nil,
         completion: @escaping ([NativeAd]) -> Void
     ) {
         guard AdsConfig.nativeAdEnabled, count > 0 else {
@@ -58,8 +63,13 @@ public final class InlineNativeAdManager: NSObject {
         self.loadedAds = []
         self.activeLoaders.removeAll()
         self.completion = completion
+        self.onAdLoadedHandler = onAdLoaded
+        self.onAdFailedHandler = onAdFailed
         self.rootViewController = rootViewController
-        self.output = rootViewController as? NativeAdLoaderOutput
+
+        if self.output == nil {
+            self.output = rootViewController as? NativeAdLoaderOutput
+        }
 
         loadNextIfPossible(sessionID: loadSessionID)
     }
@@ -131,6 +141,8 @@ public final class InlineNativeAdManager: NSObject {
         let completion = self.completion
 
         self.completion = nil
+        self.onAdLoadedHandler = nil
+        self.onAdFailedHandler = nil
         self.rootViewController = nil
         self.output = nil
         self.activeLoaders.removeAll()
@@ -153,6 +165,7 @@ extension InlineNativeAdManager: NativeAdLoaderDelegate {
                 return
             }
 
+            let index = self.loadedAds.count
             self.resetErrorCounter()
             self.loadedAds.append(nativeAd)
 
@@ -160,6 +173,7 @@ extension InlineNativeAdManager: NativeAdLoaderDelegate {
                 self,
                 didLoad: nativeAd
             )
+            self.onAdLoadedHandler?(nativeAd, index)
 
             guard self.loadedAds.count < self.targetCount else {
                 self.finish()
@@ -180,12 +194,14 @@ extension InlineNativeAdManager: NativeAdLoaderDelegate {
                 return
             }
 
+            let index = self.loadedAds.count
             self.incrementErrorCounter()
 
             self.output?.nativeAdLoader(
                 self,
                 didFailWith: error
             )
+            self.onAdFailedHandler?(index, error)
 
             guard self.loadedAds.count < self.targetCount else {
                 self.finish()
@@ -194,6 +210,67 @@ extension InlineNativeAdManager: NativeAdLoaderDelegate {
 
             self.loadNextIfPossible(sessionID: sessionID)
         }
+    }
+}
+
+// MARK: - SwiftUI Inline Native Ad View
+
+import SwiftUI
+
+public struct InlineNativeAdView: UIViewRepresentable {
+    public let nativeAd: NativeAd
+    public let adView: NativeAdView
+
+    public init(nativeAd: NativeAd, adView: NativeAdView) {
+        self.nativeAd = nativeAd
+        self.adView = adView
+    }
+
+    public func makeUIView(context: Context) -> UIView {
+        let containerView = UIView()
+        containerView.clipsToBounds = true
+        renderNativeAd(in: containerView, adView: adView, nativeAd: nativeAd)
+        return containerView
+    }
+
+    public func updateUIView(_ uiView: UIView, context: Context) {
+        renderNativeAd(in: uiView, adView: adView, nativeAd: nativeAd)
+    }
+
+    private func renderNativeAd(in containerView: UIView, adView: NativeAdView, nativeAd: NativeAd) {
+        containerView.subviews.forEach { $0.removeFromSuperview() }
+
+        adView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(adView)
+
+        NSLayoutConstraint.activate([
+            adView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            adView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            adView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            adView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+
+        adView.nativeAd = nativeAd
+        adView.mediaView?.contentMode = .scaleAspectFill
+        adView.mediaView?.clipsToBounds = true
+        adView.mediaView?.mediaContent = nativeAd.mediaContent
+
+        (adView.iconView as? UIImageView)?.image = nativeAd.icon?.image
+        (adView.headlineView as? UILabel)?.text = nativeAd.headline
+        (adView.bodyView as? UILabel)?.text = nativeAd.body
+        (adView.advertiserView as? UILabel)?.text = nativeAd.advertiser
+        (adView.priceView as? UILabel)?.text = nativeAd.price
+        (adView.storeView as? UILabel)?.text = nativeAd.store
+        (adView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
+
+        if let starRating = nativeAd.starRating {
+            (adView.starRatingView as? UIImageView)?.image = getStarRatingImage(for: starRating)
+            adView.starRatingView?.isHidden = false
+        } else {
+            adView.starRatingView?.isHidden = true
+        }
+
+        adView.callToActionView?.isUserInteractionEnabled = false
     }
 }
 

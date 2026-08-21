@@ -19,12 +19,11 @@ struct NativeContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             NativeAdContainerView(
                 adView: nativeAdView,
-                height: nativeHeight,
+                height: 300,
                 isLoaded: $nativeIsLoaded,
                 resolvedHeight: $nativeHeight
             )
-            .frame(height: nativeHeight)
-            .opacity(nativeIsLoaded ? 1 : 0)
+            .frame(height: nativeHeight > 0 ? nativeHeight : 0)
         }
     }
 }
