@@ -3,7 +3,7 @@ import SwiftUI
 import GoogleMobileAds
 struct NativeContentView: View {
     @State private var nativeIsLoaded = false
-    @State private var nativeHeight: CGFloat = 300
+    @State private var nativeHeight: CGFloat = 350
     private let nativeAdView: NativeAdView = {
         let bundle = Bundle(for: NativeAdView.self)
         guard let adView = bundle.loadNibNamed("NativeAdView", owner: nil, options: nil)?.first as? NativeAdView else {
@@ -19,7 +19,7 @@ struct NativeContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             NativeAdContainerView(
                 adView: nativeAdView,
-                height: 300,
+                height: nativeHeight,
                 isLoaded: $nativeIsLoaded,
                 resolvedHeight: $nativeHeight
             )
