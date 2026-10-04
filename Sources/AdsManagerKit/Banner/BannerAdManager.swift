@@ -148,7 +148,7 @@ final class BannerAdManager: NSObject {
 
         NSLayoutConstraint.activate([
             banner.bottomAnchor.constraint(
-                equalTo: containerView.safeAreaLayoutGuide.bottomAnchor
+                equalTo: containerView.bottomAnchor
             ),
             banner.centerXAnchor.constraint(
                 equalTo: containerView.centerXAnchor
@@ -327,20 +327,20 @@ public final class BannerContainerView: UIView {
         super.layoutSubviews()
         guard bounds.width > 0 else { return }
 
-        if bannerView == nil && !didStartLoading {
+        if (bannerView == nil || bannerView?.superview != self) && !didStartLoading {
             loadAdIfNeeded()
         }
     }
 
     public override func didMoveToWindow() {
         super.didMoveToWindow()
-        if window != nil && bannerView == nil && !didStartLoading && bounds.width > 0 {
+        if window != nil && (bannerView == nil || bannerView?.superview != self) && !didStartLoading && bounds.width > 0 {
             loadAdIfNeeded()
         }
     }
 
     public func loadAdIfNeeded() {
-        guard bannerView == nil, !didStartLoading, bounds.width > 0 else { return }
+        guard (bannerView == nil || bannerView?.superview != self), !didStartLoading, bounds.width > 0 else { return }
 
         if let last = lastLoadAttempt, Date().timeIntervalSince(last) < retryCooldown {
             return
