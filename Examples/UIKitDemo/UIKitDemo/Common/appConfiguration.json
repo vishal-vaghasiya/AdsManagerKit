@@ -1,0 +1,27 @@
+{
+  "features": {
+    "openAd": "N",
+    "openAdOnSplash": "N",
+    "banner": "N",
+    "fullScreen": "N",
+    "native": "N",
+    "nativePreload": "N"
+  },
+  "identifiers": {
+    "openAd": "ca-app-pub-3940256099942544/5575463023",
+    "banner": "ca-app-pub-3940256099942544/2435281174",
+    "fullScreen": "ca-app-pub-3940256099942544/4411468910",
+    "native": "ca-app-pub-3940256099942544/3986624511"
+  },
+  "limits": {
+    "frequency": 3,
+    "session": 5,
+    "nativePreloadCount": 1,
+    "bannerErrors": 3,
+    "fullScreenErrors": 3,
+    "nativeErrors": 3
+  },
+  "timing": {
+      "splashDelaySeconds": 3
+  }
+}

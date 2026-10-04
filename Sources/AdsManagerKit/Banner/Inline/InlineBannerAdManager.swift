@@ -74,7 +74,7 @@ public final class InlineBannerAdManager: NSObject {
         onAdFailed: ((Int, Error) -> Void)? = nil,
         completion: @escaping ([BannerView]) -> Void
     ) {
-        guard AdsConfig.bannerAdEnabled, count > 0, width > 0 else {
+        guard AdsConfig.isBannerAdEnabled, count > 0, width > 0 else {
             completion([])
             return
         }
@@ -204,7 +204,7 @@ public final class InlineBannerAdManager: NSObject {
             adSize: adSize
         )
 
-        bannerView.adUnitID = AdsConfig.bannerAdUnitId
+        bannerView.adUnitID = AdsConfig.bannerAdUnitID
         bannerView.rootViewController = rootViewController
         bannerView.delegate = self
         bannerView.translatesAutoresizingMaskIntoConstraints = false

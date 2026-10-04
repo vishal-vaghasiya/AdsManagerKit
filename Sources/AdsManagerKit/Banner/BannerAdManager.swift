@@ -2,10 +2,16 @@ import GoogleMobileAds
 import SwiftUI
 import UIKit
 
-public enum BannerAdType: String, CaseIterable, Hashable, Sendable {
+public enum BannerAdType: Hashable, Sendable {
     case regular
     case large
-    case largeAdaptive
+    case adaptive
+    case collapsed(position: CollapsedPosition)
+
+    public enum CollapsedPosition: String, Hashable, Sendable {
+        case top
+        case bottom
+    }
 }
 
 @MainActor
@@ -53,7 +59,7 @@ final class BannerAdManager: NSObject {
         type: BannerAdType,
         completion: @escaping (Bool, CGFloat) -> Void
     ) {
-        guard AdsConfig.bannerAdEnabled else {
+        guard AdsConfig.isBannerAdEnabled else {
             completion(false, 0)
             return
         }
@@ -84,8 +90,13 @@ final class BannerAdManager: NSObject {
         case .large:
             adSize = AdSizeLargeBanner
 
-        case .largeAdaptive:
+        case .adaptive:
             adSize = largeAnchoredAdaptiveBanner(width: viewWidth)
+            
+        case .collapsed:
+            adSize = currentOrientationAnchoredAdaptiveBanner(
+                width: viewWidth
+            )
         }
 
         bannerHeight = adSize.size.height
@@ -109,7 +120,7 @@ final class BannerAdManager: NSObject {
         let banner = BannerView(adSize: adSize)
         bannerView = banner
 
-        banner.adUnitID = AdsConfig.bannerAdUnitId
+        banner.adUnitID = AdsConfig.bannerAdUnitID
         banner.rootViewController = vc
         banner.delegate = self
         banner.translatesAutoresizingMaskIntoConstraints = false
@@ -126,7 +137,19 @@ final class BannerAdManager: NSObject {
             )
         ])
 
-        banner.load(Request())
+        let request = Request()
+
+        if case let .collapsed(position) = type {
+            let extras = Extras()
+
+            extras.additionalParameters = [
+                "collapsible": position.rawValue
+            ]
+
+            request.register(extras)
+        }
+
+        banner.load(request)
     }
     
     private func removeCurrentBanner() {
@@ -241,8 +264,11 @@ public struct BannerAdView: UIViewRepresentable {
             case .large:
                 shimmerHeight = AdSizeLargeBanner.size.height
 
-            case .largeAdaptive:
+            case .adaptive:
                 shimmerHeight = 100
+                
+            case .collapsed:
+                shimmerHeight = AdSizeBanner.size.height
             }
 
             shimmerView.show(

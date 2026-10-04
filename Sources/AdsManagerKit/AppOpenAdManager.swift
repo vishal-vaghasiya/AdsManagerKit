@@ -70,7 +70,7 @@ final class AppOpenAdManager: NSObject {
             return
         }
 
-        guard AdsConfig.openAdEnabled else {
+        guard AdsConfig.isOpenAdEnabled else {
             return
         }
 
@@ -88,7 +88,7 @@ final class AppOpenAdManager: NSObject {
 
         do {
             appOpenAd = try await AppOpenAd.load(
-                with: AdsConfig.openAdUnitId,
+                with: AdsConfig.openAdUnitID,
                 request: createAdRequest()
             )
 
@@ -153,8 +153,8 @@ final class AppOpenAdManager: NSObject {
     }
     
     func tryToPresentSplashAd() {
-        guard AdsConfig.openAdEnabled,
-              AdsConfig.openAdOnSplashEnabled else {
+        guard AdsConfig.isOpenAdEnabled,
+              AdsConfig.isOpenAdOnSplashEnabled else {
             // The app open ad is considered to be complete in this example.
             delegate?.appOpenAdDidComplete()
             return

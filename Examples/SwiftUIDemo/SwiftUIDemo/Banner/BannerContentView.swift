@@ -52,7 +52,7 @@ struct BannerContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             BannerAdView(
-                adType: .largeAdaptive,
+                adType: .collapsed(position: .bottom),
                 isLoaded: $bannerIsLoaded,
                 height: $bannerHeight
             )

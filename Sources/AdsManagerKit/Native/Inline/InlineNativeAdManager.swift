@@ -53,7 +53,7 @@ public final class InlineNativeAdManager: NSObject {
         onAdFailed: ((Int, Error) -> Void)? = nil,
         completion: @escaping ([NativeAd]) -> Void
     ) {
-        guard AdsConfig.nativeAdEnabled, count > 0 else {
+        guard AdsConfig.isNativeAdEnabled, count > 0 else {
             completion([])
             return
         }
@@ -96,7 +96,7 @@ public final class InlineNativeAdManager: NSObject {
         }
 
         let loader = AdLoader(
-            adUnitID: AdsConfig.nativeAdUnitId,
+            adUnitID: AdsConfig.nativeAdUnitID,
             rootViewController: rootViewController,
             adTypes: [.native],
             options: nil

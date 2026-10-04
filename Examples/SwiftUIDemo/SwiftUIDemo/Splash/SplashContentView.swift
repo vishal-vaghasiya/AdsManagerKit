@@ -4,7 +4,7 @@ import AdsManagerKit
 struct SplashContentView: View {
     @State private var adDelegate = SplashAdDelegate()
     @State private var showMainScreen = false
-
+    
     var body: some View {
         Group {
             if showMainScreen {
@@ -14,41 +14,26 @@ struct SplashContentView: View {
             }
         }
         .onAppear {
-            configureAds()
+            configureSetup()
         }
     }
-
-    private func configureAds() {
-        #if DEBUG
-        let isProduction = false
-        #else
-        let isProduction = true
-        #endif
-
-        AdsManager.configureAds(
-            isProduction: isProduction,
-            openAdEnabled: true,
-            openAdOnSplashEnabled: true,
-            bannerAdEnabled: true,
-            interstitialAdEnabled: true,
-            nativeAdEnabled: true,
-            nativeAdPreloadEnabled: true,
-            nativeAdPreloadCount: 1
-        )
-
+    
+    private func configureSetup() {
+        let configuration = AppConfigurationLoader.load()
+        
         adDelegate.onComplete = {
             startMainScreen()
         }
-
-        AdsManager.configure {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        
+        AdsManager.initialize(with: configuration) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + AdsConfig.splashDelaySeconds, execute: {
                 AdsManager.shared.tryToPresentSplashAd(
                     delegate: adDelegate
                 )
-            }
+            })
         }
     }
-
+    
     @MainActor
     private func startMainScreen() {
         showMainScreen = true

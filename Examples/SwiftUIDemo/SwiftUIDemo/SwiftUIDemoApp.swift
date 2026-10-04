@@ -8,7 +8,7 @@ struct SwiftUIDemoApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MenuView()
+            SplashContentView()
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {

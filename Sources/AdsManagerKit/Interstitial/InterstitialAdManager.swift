@@ -90,7 +90,7 @@ final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
             return
         }
 
-        guard AdsConfig.interstitialAdEnabled else {
+        guard AdsConfig.isInterstitialAdEnabled else {
             return
         }
 
@@ -123,7 +123,7 @@ final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
 
         do {
             let ad = try await InterstitialAd.load(
-                with: AdsConfig.interstitialAdUnitId,
+                with: AdsConfig.interstitialAdUnitID,
                 request: Request()
             )
 
@@ -179,7 +179,7 @@ final class InterstitialAdManager: NSObject, FullScreenContentDelegate {
 
         // MARK: Ads enabled
 
-        guard AdsConfig.interstitialAdEnabled else {
+        guard AdsConfig.isInterstitialAdEnabled else {
             return
         }
 

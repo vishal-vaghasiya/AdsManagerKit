@@ -56,7 +56,7 @@ final class NativeAdManager: NSObject {
         rootViewController: UIViewController,
         count: Int = 1
     ) async {
-        guard AdsConfig.nativeAdEnabled && AdsConfig.nativeAdPreloadEnabled else {
+        guard AdsConfig.isNativeAdEnabled && AdsConfig.isNativeAdPreloadEnabled else {
             return
         }
 
@@ -182,7 +182,7 @@ final class NativeAdManager: NSObject {
         rootViewController: UIViewController?
     ) async -> NativeAd? {
         
-        guard AdsConfig.nativeAdEnabled else {
+        guard AdsConfig.isNativeAdEnabled else {
             return nil
         }
 
@@ -193,7 +193,7 @@ final class NativeAdManager: NSObject {
         return await withCheckedContinuation { continuation in
             
             let adLoader = AdLoader(
-                adUnitID: AdsConfig.nativeAdUnitId,
+                adUnitID: AdsConfig.nativeAdUnitID,
                 rootViewController: rootViewController,
                 adTypes: [.native],
                 options: nil

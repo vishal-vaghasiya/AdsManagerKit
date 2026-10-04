@@ -14,6 +14,7 @@ struct NativeContentView: View {
     
     var body: some View {
         VStack {
+            Text("Welcome to native Ads")
             Spacer()
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -23,7 +24,7 @@ struct NativeContentView: View {
                 isLoaded: $nativeIsLoaded,
                 resolvedHeight: $nativeHeight
             )
-            .frame(height: nativeHeight > 0 ? nativeHeight : 0)
+            .frame(height: nativeHeight)
         }
     }
 }

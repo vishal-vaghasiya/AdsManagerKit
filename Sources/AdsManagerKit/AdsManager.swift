@@ -1,5 +1,4 @@
 import Foundation
-import AppTrackingTransparency
 import UIKit
 import GoogleMobileAds
 import UserMessagingPlatform
@@ -7,121 +6,135 @@ import UserMessagingPlatform
 public final class AdsManager: NSObject {
     
     public static let shared = AdsManager()
-    private var isMobileAdsStartCalled = false
+    private var hasStartedMobileAds = false
+    
     public var isAdsStarted: Bool {
-        return isMobileAdsStartCalled
+        hasStartedMobileAds
     }
     
-    /// Configure all ad settings at once
-    /// - Parameters:
-    ///   - isProduction: True for production AdMob IDs, false for test IDs
-    ///   - openAdEnabled: Enable App Open Ads
-    ///   - openAdOnSplashEnabled: Controls whether an App Open Ad can be shown on the Splash screen.
-    ///     This does not affect App Open Ads shown when the app returns from the background.
-    ///   - bannerAdEnabled: Enable Banner Ads
-    ///   - interstitialAdEnabled: Enable Interstitial Ads
-    ///   - nativeAdEnabled: Enable Native Ads
-    ///   - openAdUnitId: Optional App Open Ad Unit ID (default uses placeholder/test ID)
-    ///   - bannerAdUnitId: Optional Banner Ad Unit ID (default uses placeholder/test ID)
-    ///   - interstitialAdUnitId: Optional Interstitial Ad Unit ID
-    ///   - nativeAdUnitId: Optional Native Ad Unit ID
-    ///   - interstitialAdShowCount: Max times interstitial can show per session (default 4)
-    ///   - maxInterstitialAdsPerSession: Max interstitials per session (default 10)
-    ///   - bannerAdErrorCount: Max banner error count (default 5)
-    ///   - interstitialAdErrorCount: Max interstitial error count (default 5)
-    ///   - nativeAdErrorCount: Max native ad error count (default 5)
-    public static func configureAds(
-        isProduction: Bool,
-        openAdEnabled: Bool,
-        openAdOnSplashEnabled: Bool,
-        bannerAdEnabled: Bool,
-        interstitialAdEnabled: Bool,
-        nativeAdEnabled: Bool,
-        openAdUnitId: String? = nil,
-        bannerAdUnitId: String? = nil,
-        interstitialAdUnitId: String? = nil,
-        nativeAdUnitId: String? = nil,
-        nativeAdPreloadEnabled: Bool,
-        nativeAdPreloadCount: Int,
-        interstitialAdShowCount: Int = 4,
-        maxInterstitialAdsPerSession: Int = 10,
-        bannerAdErrorCount: Int = 5,
-        interstitialAdErrorCount: Int = 5,
-        nativeAdErrorCount: Int = 5
+    public static func initialize(
+        with configuration: AppConfiguration?,
+        completion: (() -> Void)? = nil
     ) {
-        // Configure AdsConfig with provided or default values
-        AdsConfig.isProduction = isProduction
+        if let configuration {
+            applyConfiguration(configuration)
+        }
+        let manager = AdsManager.shared
         
-        AdsConfig.openAdEnabled = openAdEnabled
-        AdsConfig.openAdOnSplashEnabled = openAdOnSplashEnabled
-        AdsConfig.bannerAdEnabled = bannerAdEnabled
-        AdsConfig.interstitialAdEnabled = interstitialAdEnabled
-        AdsConfig.nativeAdEnabled = nativeAdEnabled
-        
-        AdsConfig.openAdUnitId = openAdUnitId ?? "ca-app-pub-3940256099942544/5575463023"
-        AdsConfig.bannerAdUnitId = bannerAdUnitId ?? "ca-app-pub-3940256099942544/2934735716"
-        AdsConfig.interstitialAdUnitId = interstitialAdUnitId ?? "ca-app-pub-3940256099942544/4411468910"
-        AdsConfig.nativeAdUnitId = nativeAdUnitId ?? "ca-app-pub-3940256099942544/3986624511"
-        
-        AdsConfig.interstitialAdShowCount = interstitialAdShowCount
-        AdsConfig.maxInterstitialAdsPerSession = maxInterstitialAdsPerSession
-        
-        AdsConfig.nativeAdPreloadEnabled = nativeAdPreloadEnabled
-        AdsConfig.nativeAdPreloadCount = nativeAdPreloadCount
-        
-        AdsConfig.bannerAdErrorCount = bannerAdErrorCount
-        AdsConfig.interstitialAdErrorCount = interstitialAdErrorCount
-        AdsConfig.nativeAdErrorCount = nativeAdErrorCount
-    }
-    
-    public static func configure(completion: (() -> Void)? = nil) {
         // Gather / update consent.
-        AdsManager.shared.requestUMPConsent { canRequestAds in
+        manager.requestUMPConsent { canRequestAds in
             if canRequestAds {
-                AdsManager.startAdsFlow()
+                startGoogleMobileAdsSDK()
             }
+            
             completion?()
         }
         
         // Start ads immediately if valid consent was already obtained
         // in a previous session.
-        if AdsManager.shared.canRequestAds {
-            AdsManager.startAdsFlow()
+        if manager.canRequestAds {
+            startGoogleMobileAdsSDK()
         }
     }
     
-    private static func startAdsFlow() {
+    private static func applyConfiguration(
+        _ configuration: AppConfiguration
+    ) {
+        
+        // MARK: - Features
+        
+        AdsConfig.isOpenAdEnabled =
+        configuration.features.isOpenAdEnabled
+        
+        AdsConfig.isOpenAdOnSplashEnabled =
+        configuration.features.isOpenAdOnSplashEnabled
+        
+        AdsConfig.splashDelaySeconds =
+        configuration.timing.splashDelaySeconds
+        
+        AdsConfig.isBannerAdEnabled =
+        configuration.features.isBannerEnabled
+        
+        AdsConfig.isInterstitialAdEnabled =
+        configuration.features.isFullScreenEnabled
+        
+        AdsConfig.isNativeAdEnabled =
+        configuration.features.isNativeEnabled
+        
+        AdsConfig.isNativeAdPreloadEnabled =
+        configuration.features.isNativePreloadEnabled
+        
+        // MARK: - Ad Unit IDs
+        
+        AdsConfig.openAdUnitID =
+        configuration.identifiers.openAd
+        
+        AdsConfig.bannerAdUnitID =
+        configuration.identifiers.banner
+        
+        AdsConfig.interstitialAdUnitID =
+        configuration.identifiers.fullScreen
+        
+        AdsConfig.nativeAdUnitID =
+        configuration.identifiers.native
+        
+        // MARK: - Limits
+        
+        AdsConfig.interstitialAdShowCount =
+        configuration.limits.frequency
+        
+        AdsConfig.maxInterstitialAdsPerSession =
+        configuration.limits.session
+        
+        AdsConfig.nativeAdPreloadCount =
+        configuration.limits.nativePreloadCount
+        
+        AdsConfig.bannerAdErrorCount =
+        configuration.limits.bannerErrors
+        
+        AdsConfig.interstitialAdErrorCount =
+        configuration.limits.fullScreenErrors
+        
+        AdsConfig.nativeAdErrorCount =
+        configuration.limits.nativeErrors
+    }
+    
+    private static func startGoogleMobileAdsSDK() {
         let manager = AdsManager.shared
         
         // Prevent Google Mobile Ads SDK from being initialized more than once.
-        guard !manager.isMobileAdsStartCalled else {
+        guard !manager.hasStartedMobileAds else {
             return
         }
         
-        manager.isMobileAdsStartCalled = true
+        manager.hasStartedMobileAds = true
         
         // Initialize Google Mobile Ads SDK once.
         MobileAds.shared.start()
         
         // Preload App Open Ad.
-        if AdsConfig.openAdEnabled && AdsConfig.openAdOnSplashEnabled {
+        if AdsConfig.isOpenAdEnabled {
             Task {
                 await AppOpenAdManager.shared.loadOpenAd()
             }
         }
         
         // Preload Interstitial Ad.
-        if AdsConfig.interstitialAdEnabled {
+        if AdsConfig.isInterstitialAdEnabled {
             Task {
                 await InterstitialAdManager.shared.loadAd()
             }
         }
         
-        // Preload Native Ad.
-        if AdsConfig.nativeAdEnabled && AdsConfig.nativeAdPreloadEnabled {
-            if let rootViewController = AdsManager.shared.topMostViewController() {
+        // Preload Native Ads.
+        if AdsConfig.isNativeAdEnabled &&
+            AdsConfig.isNativeAdPreloadEnabled {
+            
+            if let rootViewController = manager.topMostViewController() {
                 Task {
-                    await NativeAdManager.shared.preloadNativeAds(rootViewController: rootViewController)
+                    await NativeAdManager.shared.preloadNativeAds(
+                        rootViewController: rootViewController
+                    )
                 }
             }
         }
@@ -140,29 +153,24 @@ public final class AdsManager: NSObject {
         completion: @Sendable @escaping @MainActor (Bool) -> Void
     ) {
         let parameters = RequestParameters()
-
+        
         Task { @MainActor in
             do {
                 try await ConsentInformation.shared.requestConsentInfoUpdate(
                     with: parameters
                 )
-
+                
                 guard let topVC = self.topMostViewController() else {
                     completion(ConsentInformation.shared.canRequestAds)
                     return
                 }
-
+                
                 try await ConsentForm.loadAndPresentIfRequired(
                     from: topVC
                 )
-
-                completion(ConsentInformation.shared.canRequestAds)
-
-            } catch {
-                #if DEBUG
-                print("UMP consent error: \(error.localizedDescription)")
-                #endif
                 
+                completion(ConsentInformation.shared.canRequestAds)
+            } catch {
                 completion(ConsentInformation.shared.canRequestAds)
             }
         }
@@ -183,7 +191,7 @@ public final class AdsManager: NSObject {
         
         return findTopViewController(from: rootViewController)
     }
-
+    
     private func findTopViewController(
         from viewController: UIViewController
     ) -> UIViewController {
@@ -211,32 +219,64 @@ public final class AdsManager: NSObject {
     }
     
     // MARK: - AppOpen Ad
-    public func tryToPresentSplashAd(delegate: AppOpenAdDelegate? = nil) {
+    public func tryToPresentSplashAd(
+        delegate: AppOpenAdDelegate? = nil
+    ) {
+        guard AdsConfig.isOpenAdEnabled,
+              AdsConfig.isOpenAdOnSplashEnabled else {
+            delegate?.appOpenAdDidComplete()
+            return
+        }
+        
         AppOpenAdManager.shared.delegate = delegate
         AppOpenAdManager.shared.tryToPresentSplashAd()
     }
     
     public func showAppOpenAdIfAvailable() {
+        guard AdsConfig.isOpenAdEnabled else {
+            return
+        }
+        
         AppOpenAdManager.shared.tryToPresentAd()
     }
     
     // MARK: - Interstitial Ad
     public func loadInterstitial() {
+        guard AdsConfig.isInterstitialAdEnabled else {
+            return
+        }
+        
         Task { @MainActor in
             await InterstitialAdManager.shared.loadAd()
         }
     }
-
+    
     public func showInterstitialIfAvailable() {
+        guard AdsConfig.isInterstitialAdEnabled else {
+            return
+        }
+        
         InterstitialAdManager.shared.showAd()
     }
     
     // MARK: - Banner Ad
-    public func loadBannerAd(in containerView: UIView,
-                           rootViewController: UIViewController,
-                           type: BannerAdType,
-                           completion: ((Bool, CGFloat) -> Void)? = nil) {
-        BannerAdManager.shared.loadBannerAd(in: containerView, vc: rootViewController, type: type, completion: completion ?? { _, _ in })
+    public func loadBannerAd(
+        in containerView: UIView,
+        rootViewController: UIViewController,
+        type: BannerAdType,
+        completion: ((Bool, CGFloat) -> Void)? = nil
+    ) {
+        guard AdsConfig.isBannerAdEnabled else {
+            completion?(false, 0)
+            return
+        }
+        
+        BannerAdManager.shared.loadBannerAd(
+            in: containerView,
+            vc: rootViewController,
+            type: type,
+            completion: completion ?? { _, _ in }
+        )
     }
     
     // MARK: - Native Ad
@@ -245,7 +285,13 @@ public final class AdsManager: NSObject {
         rootViewController: UIViewController,
         adView: NativeAdView,
         height: CGFloat,
-        completion: ((Bool, CGFloat) -> Void)? = nil) {
+        completion: ((Bool, CGFloat) -> Void)? = nil
+    ) {
+        guard AdsConfig.isNativeAdEnabled else {
+            completion?(false, 0)
+            return
+        }
+        
         NativeAdManager.shared.loadNativeAd(
             in: containerView,
             viewController: rootViewController,

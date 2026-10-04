@@ -4,12 +4,7 @@ import UIKit
 public struct AdsConfig {
 
     // MARK: - Environment Settings
-    // Controls the general ad behavior and feature toggles for the app
-    static var isProduction: Bool {
-        get { UserDefaults.standard.bool(forKey: #function) }
-        set { UserDefaults.standard.set(newValue, forKey: #function) }
-    }
-
+    
     /// Indicates whether the user has premium access (ads should be disabled).
     static var isPremiumUser: Bool {
         get { UserDefaults.standard.bool(forKey: #function) }
@@ -18,37 +13,55 @@ public struct AdsConfig {
 
     // MARK: - Private Helper
     /// Centralized logic to disable ads for premium users, otherwise fetch the stored value.
-    private static func adEnabled(_ key: String) -> Bool {
+    static func adEnabled(_ key: String) -> Bool {
         if isPremiumUser { return false }
         return UserDefaults.standard.bool(forKey: key)
     }
 
-    static var openAdEnabled: Bool {
+    static var isOpenAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
     
-    static var openAdOnSplashEnabled: Bool {
+    public static var splashDelaySeconds: TimeInterval {
+        get {
+            guard isOpenAdOnSplashEnabled else {
+                return 0
+            }
+
+            return UserDefaults.standard.double(
+                forKey: #function
+            )
+        }
+        set {
+            UserDefaults.standard.set(
+                newValue,
+                forKey: #function
+            )
+        }
+    }
+
+    static var isOpenAdOnSplashEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    public static var bannerAdEnabled: Bool {
+    static var isBannerAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var interstitialAdEnabled: Bool {
+    static var isInterstitialAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
     
-    public static var nativeAdEnabled: Bool {
+    static var isNativeAdEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
     
-    static var nativeAdPreloadEnabled: Bool {
+    static var isNativeAdPreloadEnabled: Bool {
         get { adEnabled(#function) }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
@@ -60,23 +73,23 @@ public struct AdsConfig {
 
     // MARK: - Ad Unit Identifiers
     // Stores the AdMob unit IDs for each ad format
-    static var openAdUnitId: String {
-        get { isProduction ? UserDefaults.standard.string(forKey: #function) ?? "" : "ca-app-pub-3940256099942544/5575463023" }
+    static var openAdUnitID: String {
+        get { UserDefaults.standard.string(forKey: #function) ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var bannerAdUnitId: String {
-        get { isProduction ? UserDefaults.standard.string(forKey: #function) ?? "" : "ca-app-pub-3940256099942544/2934735716" }
+    static var bannerAdUnitID: String {
+        get { UserDefaults.standard.string(forKey: #function) ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var interstitialAdUnitId: String {
-        get { isProduction ? UserDefaults.standard.string(forKey: #function) ?? "" : "ca-app-pub-3940256099942544/4411468910" }
+    static var interstitialAdUnitID: String {
+        get { UserDefaults.standard.string(forKey: #function) ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
-    static var nativeAdUnitId: String {
-        get { isProduction ? UserDefaults.standard.string(forKey: #function) ?? "" : "ca-app-pub-3940256099942544/3986624511" }
+    static var nativeAdUnitID: String {
+        get { UserDefaults.standard.string(forKey: #function) ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: #function) }
     }
 
@@ -111,7 +124,12 @@ public struct AdsConfig {
     
     // MARK: - Current Session Ad Error Counters
     // Resets on each app launch; used to track errors during the current session
-    nonisolated(unsafe) static var currentBannerAdErrorCount: Int = 0
-    nonisolated(unsafe) static var currentInterstitialAdErrorCount: Int = 0
-    nonisolated(unsafe) static var currentNativeAdErrorCount: Int = 0
+    nonisolated(unsafe)
+    static var currentBannerAdErrorCount: Int = 0
+    
+    nonisolated(unsafe)
+    static var currentInterstitialAdErrorCount: Int = 0
+    
+    nonisolated(unsafe)
+    static var currentNativeAdErrorCount: Int = 0
 }
