@@ -19,8 +19,13 @@ final class BannerAdManager: NSObject {
     
     static let shared = BannerAdManager()
     
-    private var bannerView: BannerView?
-    private var completionHandler: ((Bool, CGFloat) -> Void)?
+    private struct BannerSession {
+        let completion: (Bool, CGFloat) -> Void
+        let expectedHeight: CGFloat
+        weak var shimmerView: AdShimmerView?
+    }
+    
+    private var activeSessions: [ObjectIdentifier: BannerSession] = [:]
     private(set) var bannerHeight: CGFloat = 0
     
     private var lastBannerAdErrorTime: Date?
@@ -53,15 +58,35 @@ final class BannerAdManager: NSObject {
         return !canRetry
     }
     
+    /// Cleans up a specific banner view and its loading session.
+    func cleanupBanner(_ banner: BannerView) {
+        banner.delegate = nil
+        if let session = activeSessions.removeValue(forKey: ObjectIdentifier(banner)) {
+            session.shimmerView?.remove()
+        }
+        banner.removeFromSuperview()
+    }
+
+    /// Removes any banner views previously added to the specified container view.
+    /// Does NOT affect banner views in other containers.
+    func removeBanner(from containerView: UIView) {
+        for subview in containerView.subviews {
+            if let banner = subview as? BannerView {
+                cleanupBanner(banner)
+            }
+        }
+    }
+
+    @discardableResult
     func loadBannerAd(
         in containerView: UIView,
         vc: UIViewController,
         type: BannerAdType,
         completion: @escaping (Bool, CGFloat) -> Void
-    ) {
+    ) -> BannerView? {
         guard AdsConfig.isBannerAdEnabled else {
             completion(false, 0)
-            return
+            return nil
         }
 
         guard !hasExceededErrorLimit() else {
@@ -69,7 +94,7 @@ final class BannerAdManager: NSObject {
             print("[BannerAd] ⚠️ Max retries exceeded — not loading or showing.")
             #endif
             completion(false, 0)
-            return
+            return nil
         }
 
         containerView.layoutIfNeeded()
@@ -78,7 +103,7 @@ final class BannerAdManager: NSObject {
 
         guard viewWidth > 0 else {
             completion(false, 0)
-            return
+            return nil
         }
 
         let adSize: AdSize
@@ -99,27 +124,20 @@ final class BannerAdManager: NSObject {
             )
         }
 
-        bannerHeight = adSize.size.height
+        let currentBannerHeight = adSize.size.height
+        bannerHeight = currentBannerHeight
+
+        // Clean up previous banner from THIS container only
+        removeBanner(from: containerView)
 
         // Show shimmer while banner is loading
         let shimmerView = AdShimmerView()
         shimmerView.show(
             in: containerView,
-            height: bannerHeight
+            height: currentBannerHeight
         )
 
-        // Remove previous banner
-        removeCurrentBanner()
-
-        // Store completion and remove shimmer when loading finishes
-        self.completionHandler = { success, height in
-            shimmerView.remove()
-            completion(success, height)
-        }
-
         let banner = BannerView(adSize: adSize)
-        bannerView = banner
-
         banner.adUnitID = AdsConfig.bannerAdUnitID
         banner.rootViewController = vc
         banner.delegate = self
@@ -137,65 +155,66 @@ final class BannerAdManager: NSObject {
             )
         ])
 
+        activeSessions[ObjectIdentifier(banner)] = BannerSession(
+            completion: completion,
+            expectedHeight: currentBannerHeight,
+            shimmerView: shimmerView
+        )
+
         let request = Request()
 
         if case let .collapsed(position) = type {
             let extras = Extras()
-
             extras.additionalParameters = [
                 "collapsible": position.rawValue
             ]
-
             request.register(extras)
         }
 
         banner.load(request)
-    }
-    
-    private func removeCurrentBanner() {
-        guard let banner = bannerView else {
-            return
-        }
-
-        banner.delegate = nil
-        banner.removeFromSuperview()
-        bannerView = nil
+        return banner
     }
 
     // MARK: - SwiftUI Banner Container
+    @discardableResult
     public func makeBannerContainer(
         in containerView: UIView,
         width: CGFloat,
         adType: BannerAdType,
         onAdLoaded: ((CGFloat) -> Void)? = nil,
         onAdStateChanged: ((Bool, CGFloat) -> Void)? = nil
-    ) {
-
-        guard let rootVC = UIApplication.shared
-            .connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow })?
-            .rootViewController
-        else {
+    ) -> BannerView? {
+        guard let rootVC = resolveViewController(for: containerView) else {
             onAdStateChanged?(false, 0)
-            return
+            return nil
         }
 
-        loadBannerAd(
+        return loadBannerAd(
             in: containerView,
             vc: rootVC,
             type: adType
         ) { success, height in
-
             let resolvedHeight = success ? height : 0
-
             onAdStateChanged?(success, resolvedHeight)
-
             if success {
                 onAdLoaded?(resolvedHeight)
             }
         }
+    }
+
+    private func resolveViewController(for view: UIView) -> UIViewController? {
+        var responder: UIResponder? = view
+        while let current = responder {
+            if let vc = current as? UIViewController {
+                return vc
+            }
+            responder = current.next
+        }
+
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let activeScene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first
+        let window = activeScene?.windows.first(where: { $0.isKeyWindow }) ?? activeScene?.windows.first
+        return window?.rootViewController
     }
 }
 
@@ -207,8 +226,14 @@ extension BannerAdManager: BannerViewDelegate {
 
         resetErrorCounter()
 
-        completionHandler?(true, bannerHeight)
-        completionHandler = nil
+        guard let session = activeSessions.removeValue(forKey: ObjectIdentifier(bannerView)) else {
+            return
+        }
+
+        session.shimmerView?.remove()
+        let height = bannerView.adSize.size.height > 0 ? bannerView.adSize.size.height : session.expectedHeight
+        self.bannerHeight = height
+        session.completion(true, height)
     }
     
     public func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
@@ -218,8 +243,12 @@ extension BannerAdManager: BannerViewDelegate {
         
         incrementErrorCounter()
         
-        completionHandler?(false, 0)
-        completionHandler = nil
+        guard let session = activeSessions.removeValue(forKey: ObjectIdentifier(bannerView)) else {
+            return
+        }
+
+        session.shimmerView?.remove()
+        session.completion(false, 0)
     }
 }
 
@@ -244,85 +273,123 @@ public struct BannerAdView: UIViewRepresentable {
         self.onAdLoaded = onAdLoaded
     }
 
-    public func makeUIView(context: Context) -> UIView {
+    public func makeUIView(context: Context) -> BannerContainerView {
         let containerView = BannerContainerView()
+        containerView.adType = adType
 
-        containerView.onLayout = {
-            guard containerView.bounds.width > 0 else {
-                return
+        containerView.onAdStateChanged = { loaded, resolvedHeight in
+            DispatchQueue.main.async {
+                self.isLoaded = loaded
+                self.height = resolvedHeight
             }
+        }
 
-            // Show shimmer while loading
-            let shimmerView = AdShimmerView()
-
-            let shimmerHeight: CGFloat
-
-            switch adType {
-            case .regular:
-                shimmerHeight = AdSizeBanner.size.height
-
-            case .large:
-                shimmerHeight = AdSizeLargeBanner.size.height
-
-            case .adaptive:
-                shimmerHeight = 100
-                
-            case .collapsed:
-                shimmerHeight = AdSizeBanner.size.height
-            }
-
-            shimmerView.show(
-                in: containerView,
-                height: shimmerHeight
-            )
-
-            BannerAdManager.shared.makeBannerContainer(
-                in: containerView,
-                width: containerView.bounds.width,
-                adType: adType,
-                onAdLoaded: { loadedHeight in
-                    shimmerView.remove()
-
-                    onAdLoaded?(loadedHeight)
-                },
-                onAdStateChanged: { loaded, resolvedHeight in
-                    DispatchQueue.main.async {
-                        isLoaded = loaded
-                        height = resolvedHeight
-
-                        // Remove shimmer on success or failure
-                        if loaded {
-                            shimmerView.remove()
-                        } else {
-                            shimmerView.remove()
-                        }
-                    }
-                }
-            )
+        containerView.onAdLoaded = { loadedHeight in
+            self.onAdLoaded?(loadedHeight)
         }
 
         return containerView
     }
 
     public func updateUIView(
-        _ uiView: UIView,
+        _ uiView: BannerContainerView,
         context: Context
     ) {
-        // Intentionally empty.
+        uiView.onAdStateChanged = { loaded, resolvedHeight in
+            DispatchQueue.main.async {
+                self.isLoaded = loaded
+                self.height = resolvedHeight
+            }
+        }
+        uiView.onAdLoaded = { loadedHeight in
+            self.onAdLoaded?(loadedHeight)
+        }
+
+        if uiView.adType != adType {
+            uiView.adType = adType
+            uiView.reloadBanner()
+        }
     }
 }
 
-private final class BannerContainerView: UIView {
-    var onLayout: (() -> Void)?
-    private var didLayout = false
+@MainActor
+public final class BannerContainerView: UIView {
+    public var adType: BannerAdType = .regular
+    public var onAdLoaded: ((CGFloat) -> Void)?
+    public var onAdStateChanged: ((Bool, CGFloat) -> Void)?
 
-    override func layoutSubviews() {
+    private var didStartLoading = false
+    private(set) var bannerView: BannerView?
+    private var lastLoadAttempt: Date?
+    private let retryCooldown: TimeInterval = 30
+
+    public override func layoutSubviews() {
         super.layoutSubviews()
         guard bounds.width > 0 else { return }
 
-        guard !didLayout else { return }
+        if bannerView == nil && !didStartLoading {
+            loadAdIfNeeded()
+        }
+    }
 
-        didLayout = true
-        onLayout?()
+    public override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil && bannerView == nil && !didStartLoading && bounds.width > 0 {
+            loadAdIfNeeded()
+        }
+    }
+
+    public func loadAdIfNeeded() {
+        guard bannerView == nil, !didStartLoading, bounds.width > 0 else { return }
+
+        if let last = lastLoadAttempt, Date().timeIntervalSince(last) < retryCooldown {
+            return
+        }
+
+        didStartLoading = true
+        lastLoadAttempt = Date()
+
+        self.bannerView = BannerAdManager.shared.makeBannerContainer(
+            in: self,
+            width: bounds.width,
+            adType: adType,
+            onAdLoaded: { [weak self] loadedHeight in
+                guard let self else { return }
+                self.didStartLoading = false
+                self.onAdLoaded?(loadedHeight)
+            },
+            onAdStateChanged: { [weak self] loaded, resolvedHeight in
+                guard let self else { return }
+                self.didStartLoading = false
+                if !loaded {
+                    self.bannerView = nil
+                }
+                self.onAdStateChanged?(loaded, resolvedHeight)
+            }
+        )
+    }
+
+    public func reloadBanner() {
+        didStartLoading = false
+        lastLoadAttempt = nil
+        let previousBanner = bannerView
+        bannerView = nil
+        if let previousBanner {
+            BannerAdManager.shared.cleanupBanner(previousBanner)
+        } else {
+            BannerAdManager.shared.removeBanner(from: self)
+        }
+        if bounds.width > 0 {
+            loadAdIfNeeded()
+        }
+    }
+
+    deinit {
+        let banner = bannerView
+        if let banner {
+            Task { @MainActor in
+                BannerAdManager.shared.cleanupBanner(banner)
+            }
+        }
     }
 }
